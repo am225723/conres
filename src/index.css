@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 100% 98%; /* Very light blue/white for background */
+    --foreground: 210 20% 15%; /* Dark text for contrast */
+    --card: 210 100% 95%; /* Light card background */
+    --card-foreground: 210 20% 15%;
+    --popover: 210 100% 95%;
+    --popover-foreground: 210 20% 15%;
+    --primary: 15 90% 65%; /* Brighter orange */
+    --primary-foreground: 200 10% 98%; /* White text on primary */
+    --secondary: 330 80% 70%; /* Brighter pink */
+    --secondary-foreground: 200 10% 98%;
+    --muted: 210 20% 85%; /* Light gray for muted elements */
+    --muted-foreground: 210 20% 30%; /* Darker gray for muted text */
+    --accent: 210 20% 85%;
+    --accent-foreground: 210 20% 15%;
+    --destructive: 0 80% 60%;
+    --destructive-foreground: 200 10% 98%;
+    --border: 210 20% 90%; /* Light border color */
+    --input: 210 100% 95%;
+    --ring: 15 90% 65%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+}
+
+body {
+  background: linear-gradient(135deg, hsl(210 100% 98%) 0%, hsl(180 100% 95%) 100%); /* Light blue to light cyan gradient */
+  min-height: 100vh;
+}
+
+.glass-card {
+  background: rgba(255, 255, 255, 0.6); /* More opaque for lighter theme */
+  backdrop-filter: blur(10px); /* Slightly less blur */
+  border: 1px solid hsl(var(--border)); /* Use border variable */
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, hsl(40 100% 75%) 0%, hsl(15 90% 65%) 50%, hsl(330 80% 70%) 100%); /* Brighter Yellow, Orange, Pink */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.floating-animation {
+  animation: float 6s ease-in-out infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-10px); }
+}
+
+.pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite alternate;
+}
+
+@keyframes pulse-glow {
+  from { box-shadow: 0 0 20px hsla(15 90% 65%, 0.4); } /* Use new primary color for glow */
+  to { box-shadow: 0 0 30px hsla(15 90% 65%, 0.8); }
+}
