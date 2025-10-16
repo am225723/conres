@@ -28,10 +28,15 @@ export default function IStatementBuilder() {
   const [pickedNeeds, setPickedNeeds] = useState([]);
   const [insecurityNotes, setInsecurityNotes] = useState("");
   const [firmness, setFirmness] = useState([30]);
+  const [statement, setStatement] = useState("");
   const [prompt1, setPrompt1] = useState("");
   const [prompt2, setPrompt2] = useState("");
   const [prompt3, setPrompt3] = useState("");
-  const [statement, setStatement] = useState("");
+  const [aiResponse1, setAiResponse1] = useState("");
+  const [aiResponse2, setAiResponse2] = useState("");
+  const [aiResponse3, setAiResponse3] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [roleplayStyle, setRoleplayStyle] = useState("supportive");
   const [partnerReply, setPartnerReply] = useState("");
   const [isPlaying, setIsPlaying] = useState(false);
@@ -84,24 +89,70 @@ export default function IStatementBuilder() {
   const buildPrompt1 = useCallback(() => {
     const p = `You are an expert in communication coaching, conflict resolution, and relationship psychology. Your role is to help the user build a refined I-Statement that turns tension into connection. The goal: a message that is empathetic, clear, culturally sensitive, adapted to the chosen scenario (romantic, family, friendship, workplace, or roommate). Tone can be empathetic, assertive, professional, or neutral. Context: ${scenario}\nTone: ${tone} (firmness ${firmness[0]}/100)\n\n🎨 Structure:\n1. Rewrite the I-statement in the selected tone and context, warm & non-blaming.\n2. Suggest 2 alternatives: softer (gentle & empathetic) and more direct (clear & assertive).\n3. Flag vague or blaming language, show neutral/self-focused replacements.\n4. Use an emotion lens: refine broad feelings (“angry” → “frustrated,” “hurt”).\n\n⚡ Inputs:\n- Feeling: ${feeling || pickedEmotions.join(", ") || "[user input here]"}\n- Situation: ${situation || "[user input here]"}\n- Because: ${because || "[user input here]"}\n- Request: ${request || "[user input here]"}\n- Needs: ${pickedNeeds.length ? pickedNeeds.join(", ") : "[optional]"}\n- Insecurity Notes: ${insecurityNotes || "[optional]"}\n\n🌐 Guidance:\n- Romantic → care, vulnerability.\n- Family → respectful, inclusive.\n- Friendship → supportive, loyal.\n- Workplace → professional, clear.\n- Roommates → cooperative, pragmatic.\n\n✨ Output:\n- Refined I-statement (with context & tone).\n- Softer phrasing.\n- Direct phrasing.\n- Corrections for vague/blaming words.\n- Emotional refinements.\n\nKeep it artful, intelligent, uplifting.`;
     setPrompt1(p);
+    return p;
   }, [scenario, tone, firmness, feeling, situation, because, request, pickedEmotions, pickedNeeds, insecurityNotes]);
 
   const buildPrompt2 = useCallback(() => {
     const p = `Continue with deeper coaching on the refined I-statement.\n\n🎭 Next:\n5. Provide Empathy Mirror Response → what the other might hear/feel.\n6. Suggest dialogue steps → listening prompts, follow-up Qs, ways to check understanding.\n7. Offer 2 culturally sensitive (global English) variations.\n\n🤹 Practice:\n8. Show role-play delivery: calm body language, breathing, pacing, tone.\n9. Give feedback tips if harsh (“This may sound like blame—reframe as ‘I feel’”).\n\n📓 Growth:\n10. Suggest a conflict resolution journal → track what worked, what to try next.\n11. Remind: practicing I-statements builds emotional intelligence.\n\n🌸 Reminder (choose one line):\n- “Speak from the heart, not the wound.”\n- “Clarity with compassion is connection.”\n- “Empathy bridges your truth and theirs.”\n\nKeep it elegant, attuned, empowering.`;
     setPrompt2(p);
+    return p;
   }, []);
 
   const buildPrompt3 = useCallback(() => {
     const p = `You are a compassionate communication coach. The user will type what they’d normally say in conflict (may sound blaming, harsh, reactive).\n\nTask: Reword into a balanced I-statement with empathy, clarity, constructive tone.\n\nUser’s input:\n"""\n${normal || "[user’s raw statement here]"}\n"""\n\nSteps:\n1. Show original statement.\n2. Identify underlying emotions/needs.\n3. Rewrite as I-statement:\n   - I feel [emotion] when [situation] because [impact].\n   - Optionally: I would like [request].\n4. Provide 2 variations:\n   - Softer, empathetic.\n   - Direct, assertive.\n5. Explain how reframing shifts tone.\n6. Give one-sentence Empathy Mirror.\n7. Offer global-English version.\n\nKeep it elegant, empathetic, culturally sensitive.`;
     setPrompt3(p);
+    return p;
   }, [normal]);
 
-  const generateAll = useCallback(() => {
+  const generateAICompletions = async (prompt, setter) => {
+    try {
+      const response = await fetch('/api/perplexity', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ prompt }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      setter(result.choices[0].message.content);
+    } catch (e) {
+      console.error(e);
+      setError(e.message);
+      toast({ title: "Error Generating Response", description: e.message, variant: "destructive" });
+      throw e; // re-throw to be caught by generateAll
+    }
+  };
+
+  const generateAll = useCallback(async () => {
     constructStatement();
-    buildPrompt1();
-    buildPrompt2();
-    buildPrompt3();
-    toast({ title: "Statement & Prompts Generated! ✨", description: "Your I-statement and AI prompts have been crafted." });
+    setIsLoading(true);
+    setError(null);
+    setAiResponse1("");
+    setAiResponse2("");
+    setAiResponse3("");
+
+    const p1 = buildPrompt1();
+    const p2 = buildPrompt2();
+    const p3 = buildPrompt3();
+
+    try {
+      await Promise.all([
+        generateAICompletions(p1, setAiResponse1),
+        generateAICompletions(p2, setAiResponse2),
+        generateAICompletions(p3, setAiResponse3),
+      ]);
+      toast({ title: "AI-Powered Suggestions Ready! 🚀", description: "Your statement has been enhanced by AI." });
+    } catch (e) {
+      // Error is already handled in generateAICompletions
+    } finally {
+      setIsLoading(false);
+    }
   }, [constructStatement, buildPrompt1, buildPrompt2, buildPrompt3, toast]);
 
   const simulatePartner = () => {
@@ -180,6 +231,7 @@ export default function IStatementBuilder() {
       emotions: pickedEmotions, needs: pickedNeeds, insecurityNotes,
       normal, journal, history,
       prompts: { prompt1, prompt2, prompt3 },
+      aiResponses: { aiResponse1, aiResponse2, aiResponse3 },
     };
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
@@ -228,7 +280,22 @@ export default function IStatementBuilder() {
           <TabsTrigger value="history" className="text-foreground"><Trophy className="w-4 h-4 mr-2" />History</TabsTrigger>
         </TabsList>
         <TabsContent value="builder" className="space-y-6">
-          <BuilderTab {...{ feeling, setFeeling, situation, setSituation, because, setBecause, request, setRequest, firmness, setFirmness, generateAll, statement, prompt1, prompt2, prompt3, saveStatement, exportSession, impactPreview }} />
+          <BuilderTab {...{
+            feeling, setFeeling,
+            situation, setSituation,
+            because, setBecause,
+            request, setRequest,
+            firmness, setFirmness,
+            generateAll,
+            statement,
+            prompt1, prompt2, prompt3,
+            aiResponse1, aiResponse2, aiResponse3,
+            isLoading,
+            error,
+            saveStatement,
+            exportSession,
+            impactPreview
+          }} />
         </TabsContent>
         <TabsContent value="emotions" className="space-y-6">
           <EmotionsTab {...{ pickedEmotions, toggleEmotion, pickedNeeds, toggleNeed, insecurityNotes, setInsecurityNotes, affirmation }} />
