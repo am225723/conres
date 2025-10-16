@@ -245,6 +245,7 @@ export default defineConfig({
 			'Cross-Origin-Embedder-Policy': 'credentialless',
 		},
 		allowedHosts: true,
+		proxy: {},
 		proxy: {
 			'/.netlify/functions': {
 				target: 'http://localhost:9999',

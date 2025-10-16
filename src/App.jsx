@@ -107,6 +107,7 @@ export default function IStatementBuilder() {
 
   const generateAICompletions = async (prompt, setter) => {
     try {
+      const response = await fetch('/api/perplexity', {
       const response = await fetch('/.netlify/functions/perplexity', {
         method: 'POST',
         headers: {
