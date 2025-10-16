@@ -16,4 +16,6 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+netlify/functions/node_modules
+/functions/node_modules
 .netlify
