@@ -4,7 +4,7 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "dev": "vite --host :: --port 3000",
+    "dev": "vite --host 0.0.0.0 --port 3000",
     "build": "node tools/generate-llms.js || true && vite build",
     "preview": "vite preview --host :: --port 3000"
   },
@@ -25,6 +25,7 @@
     "clsx": "^2.0.0",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.285.0",
+    "node-fetch": "^2.7.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",
