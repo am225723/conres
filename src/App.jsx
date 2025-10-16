@@ -13,6 +13,7 @@ import { RolePlayTab } from '@/components/RolePlayTab';
 import { ExercisesTab } from '@/components/ExercisesTab';
 import { JournalTab } from '@/components/JournalTab';
 import { HistoryTab } from '@/components/HistoryTab';
+import CouplesTexting from '@/components/couples/CouplesTexting';
 
 export default function IStatementBuilder() {
   const { toast } = useToast();
@@ -271,10 +272,11 @@ export default function IStatementBuilder() {
       <Header logoSrc="https://horizons-cdn.hostinger.com/072b7eea-05b1-4460-9b36-68b9a8e786c7/1afbcf7cdc983bde44c229eaafbd4b60.png" badges={badges} />
 
       <Tabs defaultValue="builder" className="w-full max-w-6xl mx-auto">
-        <TabsList className="grid w-full grid-cols-6 bg-card">
+        <TabsList className="grid w-full grid-cols-7 bg-card">
           <TabsTrigger value="builder" className="text-foreground"><Target className="w-4 h-4 mr-2" />Builder</TabsTrigger>
           <TabsTrigger value="emotions" className="text-foreground"><Heart className="w-4 h-4 mr-2" />Emotions</TabsTrigger>
           <TabsTrigger value="roleplay" className="text-foreground"><Users className="w-4 h-4 mr-2" />Role-Play</TabsTrigger>
+          <TabsTrigger value="couples" className="text-foreground"><Users className="w-4 h-4 mr-2" />Couples</TabsTrigger>
           <TabsTrigger value="exercises" className="text-foreground"><Lightbulb className="w-4 h-4 mr-2" />Exercises</TabsTrigger>
           <TabsTrigger value="journal" className="text-foreground"><NotebookPen className="w-4 h-4 mr-2" />Journal</TabsTrigger>
           <TabsTrigger value="history" className="text-foreground"><Trophy className="w-4 h-4 mr-2" />History</TabsTrigger>
@@ -302,6 +304,9 @@ export default function IStatementBuilder() {
         </TabsContent>
         <TabsContent value="roleplay" className="space-y-6">
           <RolePlayTab {...{ roleplayStyle, setRoleplayStyle, simulatePartner, stopRoleplay, partnerReply, isPlaying, couplesMode, setCouplesMode, partnerFeeling, setPartnerFeeling, partnerSituation, setPartnerSituation, partnerBecause, setPartnerBecause, partnerRequest, setPartnerRequest, mergedCouplesView }} />
+        </TabsContent>
+        <TabsContent value="couples" className="space-y-6">
+          <CouplesTexting />
         </TabsContent>
         <TabsContent value="exercises" className="space-y-6">
           <ExercisesTab {...{ currentExercise, nextExercise, handleCheckin, checkin, tip }} />
