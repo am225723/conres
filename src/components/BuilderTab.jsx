@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
-import { Sparkles, Star, Zap, CheckCircle, Download } from 'lucide-react';
+import { Sparkles, Star, Zap, CheckCircle, Download, Loader2 } from 'lucide-react';
 
 export function BuilderTab({
   feeling, setFeeling,
@@ -16,6 +16,9 @@ export function BuilderTab({
   generateAll,
   statement,
   prompt1, prompt2, prompt3,
+  aiResponse1, aiResponse2, aiResponse3,
+  isLoading,
+  error,
   saveStatement, exportSession,
   impactPreview
 }) {
@@ -82,9 +85,14 @@ export function BuilderTab({
             </div>
             <Button
               onClick={generateAll}
+              disabled={isLoading}
               className="w-full bg-gradient-to-r from-primary to-secondary hover:from-primary/90 hover:to-secondary/90 text-primary-foreground"
             >
-              <Zap className="w-4 h-4 mr-2" />
+              {isLoading ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <Zap className="w-4 h-4 mr-2" />
+              )}
               Generate Statement
             </Button>
           </div>
@@ -95,7 +103,7 @@ export function BuilderTab({
         <CardContent className="p-6 space-y-4">
           <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
             <Star className="w-5 h-5 text-yellow-500" />
-            Your I-Statement
+            Your Enhanced I-Statement
           </h2>
           <AnimatePresence>
             {statement && (
@@ -112,22 +120,37 @@ export function BuilderTab({
               </motion.div>
             )}
           </AnimatePresence>
-          {prompt1 && (
+
+          {isLoading && (
+            <div className="flex items-center justify-center p-8">
+              <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              <p className="ml-4 text-foreground">AI is crafting responses...</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive">
+              <p>{error}</p>
+            </div>
+          )}
+
+          {(aiResponse1 || aiResponse2 || aiResponse3) && (
             <div className="space-y-3">
-              <h3 className="text-sm font-medium text-foreground">AI-Generated Prompts:</h3>
+              <h3 className="text-sm font-medium text-foreground">AI-Powered Suggestions:</h3>
               <div className="space-y-2 max-h-96 overflow-y-auto">
-                <div className="p-3 rounded bg-background/50 border border-border/50">
-                  <p className="text-sm text-foreground whitespace-pre-wrap">{prompt1}</p>
-                </div>
-                <div className="p-3 rounded bg-background/50 border border-border/50">
-                  <p className="text-sm text-foreground whitespace-pre-wrap">{prompt2}</p>
-                </div>
-                <div className="p-3 rounded bg-background/50 border border-border/50">
-                  <p className="text-sm text-foreground whitespace-pre-wrap">{prompt3}</p>
-                </div>
+                {aiResponse1 && <div className="p-3 rounded bg-background/50 border border-border/50">
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{aiResponse1}</p>
+                </div>}
+                {aiResponse2 && <div className="p-3 rounded bg-background/50 border border-border/50">
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{aiResponse2}</p>
+                </div>}
+                {aiResponse3 && <div className="p-3 rounded bg-background/50 border border-border/50">
+                  <p className="text-sm text-foreground whitespace-pre-wrap">{aiResponse3}</p>
+                </div>}
               </div>
             </div>
           )}
+
           <div className="flex gap-2">
             <Button
               onClick={saveStatement}
