@@ -31,4 +31,8 @@ module.exports = (req, res) => {
     console.error('Pusher authentication error:', error);
     res.status(500).json({ error: 'Authentication failed' });
   }
+  const socketId = req.body.socket_id;
+  const channel = req.body.channel_name;
+  const auth = pusher.authenticate(socketId, channel);
+  res.send(auth);
 };
