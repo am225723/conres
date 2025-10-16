@@ -1,0 +1,89 @@
+import React, { useState, useEffect } from 'react';
+import Pusher from 'pusher-js';
+import { nanoid } from 'nanoid';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+
+import Chat from './Chat';
+
+const CouplesTexting = ({ firmness }) => {
+  const [pusher, setPusher] = useState(null);
+  const [channel, setChannel] = useState(null);
+  const [session, setSession] = useState(null);
+  const [sessionId, setSessionId] = useState('');
+
+  useEffect(() => {
+    try {
+      const pusherInstance = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
+        cluster: import.meta.env.VITE_PUSHER_CLUSTER,
+        authEndpoint: '/.netlify/functions/pusher-auth',
+      });
+      setPusher(pusherInstance);
+      return () => {
+        pusherInstance.disconnect();
+      };
+    } catch (e) {
+      console.error("Failed to initialize Pusher:", e);
+      toast.error("Could not connect to the real-time service.");
+    }
+  }, []);
+
+  const createSession = () => {
+    const newSessionId = nanoid(10);
+    const channelName = `presence-session-${newSessionId}`;
+    const newChannel = pusher.subscribe(channelName);
+    setChannel(newChannel);
+    setSession({ id: newSessionId, status: 'waiting' });
+    toast.info('Session created! Share the ID with your partner.');
+  };
+
+  const joinSession = () => {
+    if (!sessionId) {
+      toast.error('Please enter a session ID.');
+      return;
+    }
+    const channelName = `presence-session-${sessionId}`;
+    const newChannel = pusher.subscribe(channelName);
+    setChannel(newChannel);
+    setSession({ id: sessionId, status: 'active' });
+  };
+
+  if (session) {
+    return <Chat channel={channel} firmness={firmness} />;
+  }
+
+  return (
+    <div className="p-4 max-w-lg mx-auto">
+      <ToastContainer />
+      <div className="glass-card p-6 space-y-4">
+        <h2 className="text-2xl font-bold text-center">Couples Texting</h2>
+        <p className="text-center text-foreground/70">
+          Connect with your partner in a real-time, tone-aware chat.
+        </p>
+        <button
+          onClick={createSession}
+          className="w-full bg-gradient-to-r from-primary to-secondary text-white py-2 rounded-lg"
+        >
+          Create New Session
+        </button>
+        <div className="flex items-center gap-2">
+          <input
+            type="text"
+            value={sessionId}
+            onChange={(e) => setSessionId(e.target.value)}
+            placeholder="Enter Session ID"
+            className="flex-grow bg-input border-border text-foreground placeholder:text-muted-foreground p-2 rounded-lg"
+          />
+          <button
+            onClick={joinSession}
+            className="bg-muted text-foreground py-2 px-4 rounded-lg"
+          >
+            Join
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CouplesTexting;
