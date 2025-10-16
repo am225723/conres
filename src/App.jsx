@@ -3,7 +3,7 @@ import { Helmet } from "react-helmet";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
-import { Heart, Target, Users, Lightbulb, Laptop as NotebookPen, Trophy } from 'lucide-react';
+import { Heart, Target, Users, Lightbulb, Laptop as NotebookPen, Trophy, MessagesSquare } from 'lucide-react';
 import { BADGE_DEFINITIONS, EXERCISES } from '@/lib/constants';
 
 import { Header } from '@/components/Header';
@@ -13,6 +13,7 @@ import { RolePlayTab } from '@/components/RolePlayTab';
 import { ExercisesTab } from '@/components/ExercisesTab';
 import { JournalTab } from '@/components/JournalTab';
 import { HistoryTab } from '@/components/HistoryTab';
+import CouplesTexting from '@/components/CouplesTexting';
 
 export default function IStatementBuilder() {
   const { toast } = useToast();
@@ -106,7 +107,7 @@ export default function IStatementBuilder() {
 
   const generateAICompletions = async (prompt, setter) => {
     try {
-      const response = await fetch('/api/perplexity', {
+      const response = await fetch('/.netlify/functions/perplexity', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -115,19 +116,8 @@ export default function IStatementBuilder() {
       });
 
       if (!response.ok) {
-        let errorMessage;
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
-        } catch (jsonError) {
-          // If JSON parsing fails, try to get the response as text
-          try {
-            errorMessage = await response.text();
-          } catch (textError) {
-            errorMessage = `HTTP error! status: ${response.status}`;
-          }
-        }
-        throw new Error(errorMessage);
+        const errorData = await response.json();
+        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
       }
 
       const result = await response.json();
@@ -282,13 +272,14 @@ export default function IStatementBuilder() {
       <Header logoSrc="https://horizons-cdn.hostinger.com/072b7eea-05b1-4460-9b36-68b9a8e786c7/1afbcf7cdc983bde44c229eaafbd4b60.png" badges={badges} />
 
       <Tabs defaultValue="builder" className="w-full max-w-6xl mx-auto">
-        <TabsList className="grid w-full grid-cols-6 bg-card">
+        <TabsList className="grid w-full grid-cols-7 bg-card">
           <TabsTrigger value="builder" className="text-foreground"><Target className="w-4 h-4 mr-2" />Builder</TabsTrigger>
           <TabsTrigger value="emotions" className="text-foreground"><Heart className="w-4 h-4 mr-2" />Emotions</TabsTrigger>
           <TabsTrigger value="roleplay" className="text-foreground"><Users className="w-4 h-4 mr-2" />Role-Play</TabsTrigger>
           <TabsTrigger value="exercises" className="text-foreground"><Lightbulb className="w-4 h-4 mr-2" />Exercises</TabsTrigger>
           <TabsTrigger value="journal" className="text-foreground"><NotebookPen className="w-4 h-4 mr-2" />Journal</TabsTrigger>
           <TabsTrigger value="history" className="text-foreground"><Trophy className="w-4 h-4 mr-2" />History</TabsTrigger>
+          <TabsTrigger value="couples" className="text-foreground"><MessagesSquare className="w-4 h-4 mr-2" />Couples</TabsTrigger>
         </TabsList>
         <TabsContent value="builder" className="space-y-6">
           <BuilderTab {...{
@@ -322,6 +313,9 @@ export default function IStatementBuilder() {
         </TabsContent>
         <TabsContent value="history" className="space-y-6">
           <HistoryTab {...{ insights, history }} />
+        </TabsContent>
+        <TabsContent value="couples" className="space-y-6">
+          <CouplesTexting firmness={firmness} />
         </TabsContent>
       </Tabs>
     </div>
