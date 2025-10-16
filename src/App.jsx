@@ -115,8 +115,19 @@ export default function IStatementBuilder() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        let errorMessage;
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || `HTTP error! status: ${response.status}`;
+        } catch (jsonError) {
+          // If JSON parsing fails, try to get the response as text
+          try {
+            errorMessage = await response.text();
+          } catch (textError) {
+            errorMessage = `HTTP error! status: ${response.status}`;
+          }
+        }
+        throw new Error(errorMessage);
       }
 
       const result = await response.json();
