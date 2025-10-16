@@ -1,28 +1,33 @@
 import React, { useState, useEffect } from 'react';
 import Pusher from 'pusher-js';
 
-const Chat = () => {
+const Chat = ({ currentUser, otherUser }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [tone, setTone] = useState('neutral');
   const [suggestions, setSuggestions] = useState([]);
   const [rewording, setRewording] = useState(false);
 
-  // These will be replaced with actual user data
-  const sender = 'User1';
-  const receiver = 'User2';
-  const channelName = `private-chat-${[sender, receiver].sort().join('-')}`;
+  const channelName = `private-chat-${[currentUser, otherUser].sort().join('-')}`;
 
   useEffect(() => {
     const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
       cluster: import.meta.env.VITE_PUSHER_CLUSTER,
       authEndpoint: '/api/pusher-auth',
       auth: {
-        params: { userId: sender }
+        params: { userId: currentUser }
       }
     });
 
     const channel = pusher.subscribe(channelName);
+
+    channel.bind('pusher:subscription_succeeded', () => {
+      console.log(`[${currentUser}] Subscribed to ${channelName}`);
+    });
+
+    channel.bind('pusher:subscription_error', (status) => {
+      console.error(`[${currentUser}] Subscription error:`, status);
+    });
 
     channel.bind('new-message', (data) => {
       setMessages((prevMessages) => [...prevMessages, data]);
@@ -31,7 +36,7 @@ const Chat = () => {
     return () => {
       pusher.unsubscribe(channelName);
     };
-  }, [channelName, sender]);
+  }, [channelName, currentUser]);
 
   const handleSendMessage = async (e) => {
     e.preventDefault();
@@ -39,7 +44,7 @@ const Chat = () => {
 
     const payload = {
       message,
-      sender,
+      sender: currentUser,
       channel: channelName,
     };
 
@@ -100,8 +105,8 @@ const Chat = () => {
     <div className="chat-container">
       <div className="messages-area">
         {messages.map((msg, i) => (
-          <div key={i} className={`message ${msg.sender === sender ? 'sent' : 'received'}`}>
-            <p>{msg.message}</p>
+          <div key={i} className={`message ${msg.sender === currentUser ? 'sent' : 'received'}`}>
+            <p><strong>{msg.sender}:</strong> {msg.message}</p>
           </div>
         ))}
       </div>
