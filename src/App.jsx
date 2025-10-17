@@ -14,11 +14,11 @@ import { RolePlayTab } from '@/components/RolePlayTab';
 import { ExercisesTab } from '@/components/ExercisesTab';
 import { JournalTab } from '@/components/JournalTab';
 import { HistoryTab } from '@/components/HistoryTab';
-import CouplesTexting from '@/components/couples/CouplesTexting';
+import CouplesTexting from '@/components/CouplesTexting';
 
 const MainApp = () => {
   const { toast } = useToast();
-  
+
   const [feeling, setFeeling] = useState("");
   const [situation, setSituation] = useState("");
   const [because, setBecause] = useState("");
@@ -68,13 +68,13 @@ const MainApp = () => {
   }, [history.length, pickedNeeds]);
 
   const toggleEmotion = (emotion) => {
-    setPickedEmotions(prev => 
+    setPickedEmotions(prev =>
       prev.includes(emotion) ? prev.filter(e => e !== emotion) : [...prev, emotion]
     );
   };
 
   const toggleNeed = (need) => {
-    setPickedNeeds(prev => 
+    setPickedNeeds(prev =>
       prev.includes(need) ? prev.filter(n => n !== need) : [...prev, need]
     );
   };
@@ -210,7 +210,7 @@ const MainApp = () => {
     if (pickedNeeds.includes("security")) return "I can ask for safety and stability and still be loved.";
     return "I can be clear and kind at the same time.";
   }, [pickedNeeds]);
-  
+
   const handleCheckin = (val) => {
     setCheckin(val);
     if (val === "anxious") setTip("Try 4-7-8 breathing and start with: ‘I want us to feel close while we talk.’");
@@ -244,7 +244,7 @@ const MainApp = () => {
     URL.revokeObjectURL(url);
     toast({ title: "Session Exported!", description: "A JSON file has been downloaded." });
   };
-  
+
   const addJournalEntry = () => {
     if (!journalEntry.trim()) {
       toast({ title: "Empty Entry", description: "Please write something in your journal first!", variant: "destructive" });
@@ -298,6 +298,9 @@ const MainApp = () => {
         <TabsContent value="roleplay" className="space-y-6">
           <RolePlayTab {...{ roleplayStyle, setRoleplayStyle, simulatePartner, stopRoleplay, partnerReply, isPlaying, couplesMode, setCouplesMode, partnerFeeling, setPartnerFeeling, partnerSituation, setPartnerSituation, partnerBecause, setPartnerBecause, partnerRequest, setPartnerRequest, mergedCouplesView }} />
         </TabsContent>
+        <TabsContent value="couples" className="space-y-6">
+          <CouplesTexting />
+        </TabsContent>
         <TabsContent value="exercises" className="space-y-6">
           <ExercisesTab {...{ currentExercise, nextExercise, handleCheckin, checkin, tip }} />
         </TabsContent>
@@ -322,7 +325,6 @@ export default function App() {
         <meta property="og:description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
       </Helmet>
       <Toaster />
-      <Header logoSrc="https://horizons-cdn.hostinger.com/072b7eea-05b1-4460-9b36-68b9a8e786c7/1afbcf7cdc983bde44c229eaafbd4b60.png" badges={[]} />
       <Routes>
         <Route path="/" element={<MainApp />} />
         <Route path="/couples/:sessionId" element={<CouplesTexting />} />
