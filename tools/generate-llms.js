@@ -120,7 +120,7 @@ function generateFallbackUrl(fileName) {
 }
 
 function generateLlmsTxt(pages) {
-  const sortedPages = pages.sort((a, b) => a.title.localeCompare(b.title));
+  const sortedPages = pages.filter(Boolean).sort((a, b) => a.title.localeCompare(b.title));
   const pageEntries = sortedPages.map(page => 
     `- [${page.title}](${page.url}): ${page.description}`
   ).join('\n');
@@ -151,7 +151,10 @@ function main() {
   let pages = [];
   
   if (!fs.existsSync(pagesDir)) {
-    pages.push(processPageFile(appJsxPath, []));
+    const page = processPageFile(appJsxPath, []);
+    if (page) {
+        pages.push(page);
+    }
   } else {
     const routes = extractRoutes(appJsxPath);
     const reactFiles = findReactFiles(pagesDir);
