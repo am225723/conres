@@ -1,5 +1,6 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { Helmet } from "react-helmet";
+import { Routes, Route, Link } from "react-router-dom";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
@@ -13,11 +14,11 @@ import { RolePlayTab } from '@/components/RolePlayTab';
 import { ExercisesTab } from '@/components/ExercisesTab';
 import { JournalTab } from '@/components/JournalTab';
 import { HistoryTab } from '@/components/HistoryTab';
-import CouplesTexting from '@/components/couples/CouplesTexting';
+import CouplesTexting from '@/components/CouplesTexting';
 
-export default function IStatementBuilder() {
+const MainApp = () => {
   const { toast } = useToast();
-  
+
   const [feeling, setFeeling] = useState("");
   const [situation, setSituation] = useState("");
   const [because, setBecause] = useState("");
@@ -67,13 +68,13 @@ export default function IStatementBuilder() {
   }, [history.length, pickedNeeds]);
 
   const toggleEmotion = (emotion) => {
-    setPickedEmotions(prev => 
+    setPickedEmotions(prev =>
       prev.includes(emotion) ? prev.filter(e => e !== emotion) : [...prev, emotion]
     );
   };
 
   const toggleNeed = (need) => {
-    setPickedNeeds(prev => 
+    setPickedNeeds(prev =>
       prev.includes(need) ? prev.filter(n => n !== need) : [...prev, need]
     );
   };
@@ -209,7 +210,7 @@ export default function IStatementBuilder() {
     if (pickedNeeds.includes("security")) return "I can ask for safety and stability and still be loved.";
     return "I can be clear and kind at the same time.";
   }, [pickedNeeds]);
-  
+
   const handleCheckin = (val) => {
     setCheckin(val);
     if (val === "anxious") setTip("Try 4-7-8 breathing and start with: ‘I want us to feel close while we talk.’");
@@ -243,7 +244,7 @@ export default function IStatementBuilder() {
     URL.revokeObjectURL(url);
     toast({ title: "Session Exported!", description: "A JSON file has been downloaded." });
   };
-  
+
   const addJournalEntry = () => {
     if (!journalEntry.trim()) {
       toast({ title: "Empty Entry", description: "Please write something in your journal first!", variant: "destructive" });
@@ -262,21 +263,13 @@ export default function IStatementBuilder() {
 
   return (
     <div className="min-h-screen p-4 space-y-6">
-      <Helmet>
-        <title>I-Statement Builder - Transform Your Communication</title>
-        <meta name="description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
-        <meta property="og:title" content="I-Statement Builder - Transform Your Communication" />
-        <meta property="og:description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
-      </Helmet>
-      <Toaster />
       <Header logoSrc="https://horizons-cdn.hostinger.com/072b7eea-05b1-4460-9b36-68b9a8e786c7/1afbcf7cdc983bde44c229eaafbd4b60.png" badges={badges} />
-
       <Tabs defaultValue="builder" className="w-full max-w-6xl mx-auto">
         <TabsList className="grid w-full grid-cols-7 bg-card">
           <TabsTrigger value="builder" className="text-foreground"><Target className="w-4 h-4 mr-2" />Builder</TabsTrigger>
           <TabsTrigger value="emotions" className="text-foreground"><Heart className="w-4 h-4 mr-2" />Emotions</TabsTrigger>
           <TabsTrigger value="roleplay" className="text-foreground"><Users className="w-4 h-4 mr-2" />Role-Play</TabsTrigger>
-          <TabsTrigger value="couples" className="text-foreground"><Users className="w-4 h-4 mr-2" />Couples</TabsTrigger>
+          <TabsTrigger value="couples" asChild><Link to="/couples" className="text-foreground"><Users className="w-4 h-4 mr-2" />Couples</Link></TabsTrigger>
           <TabsTrigger value="exercises" className="text-foreground"><Lightbulb className="w-4 h-4 mr-2" />Exercises</TabsTrigger>
           <TabsTrigger value="journal" className="text-foreground"><NotebookPen className="w-4 h-4 mr-2" />Journal</TabsTrigger>
           <TabsTrigger value="history" className="text-foreground"><Trophy className="w-4 h-4 mr-2" />History</TabsTrigger>
@@ -318,6 +311,25 @@ export default function IStatementBuilder() {
           <HistoryTab {...{ insights, history }} />
         </TabsContent>
       </Tabs>
+    </div>
+  )
+};
+
+export default function App() {
+  return (
+    <div className="min-h-screen p-4 space-y-6">
+      <Helmet>
+        <title>I-Statement Builder - Transform Your Communication</title>
+        <meta name="description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
+        <meta property="og:title" content="I-Statement Builder - Transform Your Communication" />
+        <meta property="og:description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
+      </Helmet>
+      <Toaster />
+      <Routes>
+        <Route path="/" element={<MainApp />} />
+        <Route path="/couples/:sessionId" element={<CouplesTexting />} />
+        <Route path="/couples" element={<CouplesTexting />} />
+      </Routes>
     </div>
   );
 }

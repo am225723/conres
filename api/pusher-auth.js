@@ -15,7 +15,7 @@ module.exports = (req, res) => {
       return res.status(400).json({ error: 'Invalid request body' });
     }
 
-    const { socket_id: socketId, channel_name: channel } = req.body;
+    const { socket_id: socketId, channel_name: channel, userId } = req.body;
 
     if (!socketId) {
       return res.status(400).json({ error: 'Missing socket_id parameter' });
@@ -25,14 +25,15 @@ module.exports = (req, res) => {
       return res.status(400).json({ error: 'Missing channel_name parameter' });
     }
 
-    const auth = pusher.authenticate(socketId, channel);
+    const presenseData = {
+      user_id: userId,
+      user_info: {},
+     };
+
+    const auth = pusher.authenticate(socketId, channel, presenseData);
     res.send(auth);
   } catch (error) {
     console.error('Pusher authentication error:', error);
     res.status(500).json({ error: 'Authentication failed' });
   }
-  const socketId = req.body.socket_id;
-  const channel = req.body.channel_name;
-  const auth = pusher.authenticate(socketId, channel);
-  res.send(auth);
 };

@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import Pusher from 'pusher-js';
 
-const Chat = ({ currentUser, otherUser }) => {
+const Chat = ({ currentUser, otherUser, sessionId }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [tone, setTone] = useState('neutral');
   const [suggestions, setSuggestions] = useState([]);
   const [rewording, setRewording] = useState(false);
 
-  const channelName = `private-chat-${[currentUser, otherUser].sort().join('-')}`;
+  const channelName = `presence-chat-${sessionId}`;
+  const [members, setMembers] = useState([]);
 
   useEffect(() => {
     const pusher = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
@@ -21,12 +22,16 @@ const Chat = ({ currentUser, otherUser }) => {
 
     const channel = pusher.subscribe(channelName);
 
-    channel.bind('pusher:subscription_succeeded', () => {
-      console.log(`[${currentUser}] Subscribed to ${channelName}`);
+    channel.bind('pusher:subscription_succeeded', (members) => {
+      setMembers(Object.keys(members.members));
     });
 
-    channel.bind('pusher:subscription_error', (status) => {
-      console.error(`[${currentUser}] Subscription error:`, status);
+    channel.bind('pusher:member_added', (member) => {
+      setMembers((prevMembers) => [...prevMembers, member.id]);
+    });
+
+    channel.bind('pusher:member_removed', (member) => {
+      setMembers((prevMembers) => prevMembers.filter((m) => m !== member.id));
     });
 
     channel.bind('new-message', (data) => {
@@ -103,6 +108,14 @@ const Chat = ({ currentUser, otherUser }) => {
 
   return (
     <div className="chat-container">
+      <div className="members-list">
+        <h3 className="text-lg font-bold">In this session:</h3>
+        <ul>
+          {members.map((member) => (
+            <li key={member}>{member}</li>
+          ))}
+        </ul>
+      </div>
       <div className="messages-area">
         {messages.map((msg, i) => (
           <div key={i} className={`message ${msg.sender === currentUser ? 'sent' : 'received'}`}>
