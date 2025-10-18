@@ -1,4 +1,6 @@
 import Pusher from 'pusher';
+import { nanoid } from 'nanoid';
+
 
 const pusher = new Pusher({
   appId: process.env.VITE_PUSHER_APP_ID,
