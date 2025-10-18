@@ -14,6 +14,7 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
   const [participants, setParticipants] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
+  const [isAiHelping, setIsAiHelping] = useState(false); // New state for AI buttons
   const messagesEndRef = useRef(null);
   const channelRef = useRef(null);
 
@@ -36,13 +37,11 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
   useEffect(() => {
     const loadInitialData = async () => {
       try {
-        // Load message history
         const messagesResult = await getMessageHistory(session.id);
         if (messagesResult.success) {
           setMessages(messagesResult.messages);
         }
 
-        // Load participants
         const participantsResult = await getSessionParticipants(session.id);
         if (participantsResult.success) {
           setParticipants(participantsResult.participants);
@@ -62,23 +61,16 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
   useEffect(() => {
     if (!session?.id) return;
 
-    // Create a channel for this session
     const channel = supabase.channel(`session-${session.id}`, {
       config: {
         broadcast: { self: true }
       }
     });
 
-    // Subscribe to new messages
     channel
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'messages',
-          filter: `session_id=eq.${session.id}`
-        },
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `session_id=eq.${session.id}` },
         (payload) => {
           console.log('New message received:', payload);
           setMessages((prev) => [...prev, payload.new]);
@@ -86,21 +78,13 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
       )
       .on(
         'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'participants',
-          filter: `session_id=eq.${session.id}`
-        },
-        async (payload) => {
-          console.log('New participant joined:', payload);
-          // Reload participants
-          const result = await getSessionParticipants(session.id);
-          if (result.success) {
-            setParticipants(result.participants);
-            if (payload.new.user_id !== userId) {
-              toast.info(`${payload.new.nickname || 'Someone'} joined the chat`);
-            }
+        { event: 'INSERT', schema: 'public', table: 'participants', filter: `session_id=eq.${session.id}` },
+        // ✨ SUGGESTION APPLIED: Update participants directly from payload
+        (payload) => {
+          console.log('New participant joined:', payload.new);
+          setParticipants((currentParticipants) => [...currentParticipants, payload.new]);
+          if (payload.new.user_id !== userId) {
+            toast.info(`${payload.new.nickname || 'Someone'} joined the chat`);
           }
         }
       )
@@ -115,7 +99,6 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
 
     channelRef.current = channel;
 
-    // Cleanup on unmount
     return () => {
       console.log('Cleaning up channel subscription');
       channel.unsubscribe();
@@ -141,12 +124,7 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
         firmnessValue
       };
 
-      const result = await sendMessage(
-        session.id,
-        userId,
-        message,
-        toneAnalysis
-      );
+      const result = await sendMessage(session.id, userId, message, toneAnalysis);
 
       if (result.success) {
         setMessage('');
@@ -168,73 +146,71 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
     }
   };
 
+  // ✨ SUGGESTION APPLIED: Add loading state
   const suggestReply = async () => {
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage) {
       toast.info("No message to reply to.");
       return;
     }
-
+    
+    setIsAiHelping(true);
     const prompt = `Based on the last message "${lastMessage.message_text}", suggest a supportive and constructive reply.`;
 
     try {
       const response = await fetch('/api/perplexity', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
       const result = await response.json();
       setMessage(result.choices[0].message.content);
       toast.success("Suggested reply has been filled in the message box.");
     } catch (e) {
       console.error('Error getting suggested reply:', e);
       toast.error("Failed to get suggested reply.");
+    } finally {
+      setIsAiHelping(false);
     }
   };
 
+  // ✨ SUGGESTION APPLIED: Add loading state
   const rewordAsIStatement = async () => {
     if (!message.trim()) {
       toast.info("Please type a message to reword.");
       return;
     }
 
+    setIsAiHelping(true);
     const prompt = `Reword the following message as an I-statement: "${message}"`;
 
     try {
       const response = await fetch('/api/perplexity', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt }),
       });
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! status: ${response.status}`);
-      }
-
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      
       const result = await response.json();
       setMessage(result.choices[0].message.content);
       toast.success("Message has been reworded as an I-statement.");
     } catch (e) {
       console.error('Error rewording message:', e);
       toast.error("Failed to reword message.");
+    } finally {
+      setIsAiHelping(false);
     }
   };
 
   const handleLeaveSession = async () => {
     try {
       await leaveSession(session.id, userId);
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-      }
+      if (channelRef.current) channelRef.current.unsubscribe();
       onLeave();
       toast.info('Left the session');
     } catch (error) {
@@ -256,30 +232,19 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
 
   return (
     <div className="flex flex-col h-[calc(100vh-150px)] max-w-2xl mx-auto bg-card rounded-lg shadow-lg">
-      {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
         <div>
-          <h2 className="text-lg font-bold text-foreground">
-            Session: {session.session_code}
-          </h2>
-          <p className="text-xs text-foreground/60">
-            {participants.length} participant{participants.length !== 1 ? 's' : ''} online
-          </p>
+          <h2 className="text-lg font-bold text-foreground">Session: {session.session_code}</h2>
+          <p className="text-xs text-foreground/60">{participants.length} participant{participants.length !== 1 ? 's' : ''} online</p>
         </div>
-        <button
-          onClick={handleLeaveSession}
-          className="bg-destructive/10 hover:bg-destructive/20 text-destructive px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
+        <button onClick={handleLeaveSession} className="bg-destructive/10 hover:bg-destructive/20 text-destructive px-4 py-2 rounded-lg text-sm font-medium transition-colors">
           Leave
         </button>
       </div>
 
-      {/* Messages */}
       <div className="flex-grow p-4 overflow-y-auto space-y-4">
         {messages.length === 0 ? (
-          <div className="text-center text-foreground/50 mt-8">
-            <p>No messages yet. Start the conversation!</p>
-          </div>
+          <div className="text-center text-foreground/50 mt-8"><p>No messages yet. Start the conversation!</p></div>
         ) : (
           messages.map((msg, index) => {
             const isOwnMessage = msg.user_id === userId;
@@ -287,32 +252,12 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
             const displayName = participant?.nickname || (isOwnMessage ? 'You' : 'Partner');
             
             return (
-              <div 
-                key={msg.id || index} 
-                className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}
-              >
-                <div className={`max-w-[80%] p-3 rounded-lg ${
-                  isOwnMessage 
-                    ? 'bg-primary text-primary-foreground' 
-                    : 'bg-muted'
-                } ${
-                  msg.firmness_level === 'gentle' ? 'border-l-4 border-green-400' :
-                  msg.firmness_level === 'balanced' ? 'border-l-4 border-blue-400' :
-                  msg.firmness_level === 'firm' ? 'border-l-4 border-red-400' : ''
-                }`}>
+              <div key={msg.id || index} className={`flex flex-col ${isOwnMessage ? 'items-end' : 'items-start'}`}>
+                <div className={`max-w-[80%] p-3 rounded-lg ${isOwnMessage ? 'bg-primary text-primary-foreground' : 'bg-muted'} ${msg.firmness_level === 'gentle' ? 'border-l-4 border-green-400' : msg.firmness_level === 'balanced' ? 'border-l-4 border-blue-400' : msg.firmness_level === 'firm' ? 'border-l-4 border-red-400' : ''}`}>
                   <p className="font-semibold text-sm mb-1">{displayName}</p>
                   <p className="whitespace-pre-wrap break-words">{msg.message_text}</p>
-                  {msg.impact_preview && (
-                    <p className="text-xs mt-2 opacity-70 italic">
-                      {msg.impact_preview}
-                    </p>
-                  )}
-                  <p className="text-xs mt-1 opacity-60">
-                    {new Date(msg.created_at).toLocaleTimeString([], { 
-                      hour: '2-digit', 
-                      minute: '2-digit' 
-                    })}
-                  </p>
+                  {msg.impact_preview && (<p className="text-xs mt-2 opacity-70 italic">{msg.impact_preview}</p>)}
+                  <p className="text-xs mt-1 opacity-60">{new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
                 </div>
               </div>
             );
@@ -321,16 +266,10 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
         <div ref={messagesEndRef} />
       </div>
 
-      {/* Input Area */}
       <div className="p-4 border-t border-border bg-muted/30">
-        {/* Impact Preview */}
         {message && (
-          <div className="mb-2 p-2 bg-muted rounded text-xs text-foreground/70">
-            <strong>Impact Preview:</strong> {impactPreview}
-          </div>
+          <div className="mb-2 p-2 bg-muted rounded text-xs text-foreground/70"><strong>Impact Preview:</strong> {impactPreview}</div>
         )}
-
-        {/* Message Input */}
         <div className="flex gap-2 mb-2">
           <textarea
             value={message}
@@ -350,19 +289,21 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
           </button>
         </div>
 
-        {/* Action Buttons */}
+        {/* ✨ SUGGESTION APPLIED: Update button text and disabled state */}
         <div className="flex gap-2">
           <button
             onClick={suggestReply}
-            className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2 px-4 rounded-lg text-sm font-medium transition-colors"
+            disabled={isAiHelping}
+            className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2 px-4 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Suggest a Reply
+            {isAiHelping ? 'Thinking...' : 'Suggest a Reply'}
           </button>
           <button
             onClick={rewordAsIStatement}
-            className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2 px-4 rounded-lg text-sm font-medium transition-colors"
+            disabled={isAiHelping || !message.trim()}
+            className="flex-1 bg-muted hover:bg-muted/80 text-foreground py-2 px-4 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            Reword as I-Statement
+            {isAiHelping ? 'Rewording...' : 'Reword as I-Statement'}
           </button>
         </div>
       </div>
