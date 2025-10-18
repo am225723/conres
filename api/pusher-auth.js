@@ -1,4 +1,17 @@
-const Pusher = require('pusher');
+import Pusher from 'pusher';
+
+const requiredEnv = [
+  'VITE_PUSHER_APP_ID',
+  'VITE_PUSHER_KEY',
+  'VITE_PUSHER_SECRET',
+  'VITE_PUSHER_CLUSTER',
+];
+
+const missingEnv = requiredEnv.filter((varName) => !process.env[varName]);
+
+if (missingEnv.length > 0) {
+  console.error(`Missing required environment variables: ${missingEnv.join(', ')}`);
+}
 
 const pusher = new Pusher({
   appId: process.env.VITE_PUSHER_APP_ID,
@@ -8,7 +21,7 @@ const pusher = new Pusher({
   useTLS: true
 });
 
-module.exports = (req, res) => {
+export default (req, res) => {
   try {
     // Validate required parameters
     if (!req.body || typeof req.body !== 'object') {
@@ -23,6 +36,10 @@ module.exports = (req, res) => {
 
     if (!channel) {
       return res.status(400).json({ error: 'Missing channel_name parameter' });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId parameter' });
     }
 
     const presenseData = {
