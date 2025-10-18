@@ -1,11 +1,32 @@
-import { nanoid } from 'nanoid';
+import { createClient } from '@supabase/supabase-js';
 
-export default (req, res) => {
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = process.env.VITE_SUPABASE_ANON_KEY;
+
+const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+export default async (req, res) => {
   if (req.method !== 'POST') {
     res.setHeader('Allow', ['POST']);
     return res.status(405).end(`Method ${req.method} Not Allowed`);
   }
 
-  const sessionId = nanoid(10);
-  res.status(200).json({ sessionId });
+  try {
+    const { data, error } = await supabase
+      .from('sessions')
+      .insert([{}])
+      .select('id')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    const sessionId = data.id;
+
+    res.status(200).json({ sessionId });
+  } catch (error) {
+    console.error('Error creating session in Supabase:', error);
+    res.status(500).json({ error: 'Failed to create session', details: error.message });
+  }
 };
