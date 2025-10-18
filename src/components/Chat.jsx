@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { toast } from 'react-toastify';
 
-const Chat = ({ channel, firmness }) => {
+const Chat = ({ channel, firmness, userId }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const messagesEndRef = useRef(null);
@@ -14,13 +14,20 @@ const Chat = ({ channel, firmness }) => {
   }, [message, firmness]);
 
   useEffect(() => {
-    const messageCallback = (data) => {
-      setMessages((prev) => [...prev, data]);
-    };
-    channel.bind('message', messageCallback);
+    if (!channel) return;
+
+    const subscription = channel
+      .on('broadcast', { event: 'message' }, (payload) => {
+        setMessages((prev) => [...prev, payload.payload]);
+      })
+      .subscribe((status) => {
+        if (status !== 'SUBSCRIBED') {
+          toast.error('Could not connect to the real-time service.');
+        }
+      });
 
     return () => {
-      channel.unbind('message', messageCallback);
+      subscription.unsubscribe();
     };
   }, [channel]);
 
@@ -29,20 +36,18 @@ const Chat = ({ channel, firmness }) => {
   }, [messages]);
 
   const sendMessage = async () => {
-    if (!message.trim()) return;
+    if (!message.trim() || !channel) return;
 
     try {
-      await fetch('/.netlify/functions/pusher-trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          channel: channel.name,
-          message: { text: message, impact: impactPreview },
-        }),
+      await channel.send({
+        type: 'broadcast',
+        event: 'message',
+        payload: { text: message, impact: impactPreview, userId },
       });
       setMessage('');
     } catch (error) {
       toast.error('Failed to send message.');
+      console.error('Error sending message:', error);
     }
   };
 
@@ -56,7 +61,7 @@ const Chat = ({ channel, firmness }) => {
     const prompt = `Based on the last message "${lastMessage.text}", suggest a supportive and constructive reply.`;
 
     try {
-      const response = await fetch('/.netlify/functions/perplexity', {
+      const response = await fetch('/api/perplexity', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -85,7 +90,7 @@ const Chat = ({ channel, firmness }) => {
     const prompt = `Reword the following message as an I-statement: "${message}"`;
 
     try {
-      const response = await fetch('/.netlify/functions/perplexity', {
+      const response = await fetch('/api/perplexity', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -109,14 +114,18 @@ const Chat = ({ channel, firmness }) => {
     <div className="flex flex-col h-[calc(100vh-150px)] max-w-2xl mx-auto bg-card rounded-lg shadow-lg">
       <div className="flex-grow p-4 overflow-y-auto">
         {messages.map((msg, index) => (
-          <div key={index} className={`mb-4 p-2 rounded-lg ${
-              msg.impact.includes('gentle') ? 'bg-green-500/20' :
-              msg.impact.includes('balanced') ? 'bg-blue-500/20' :
-              msg.impact.includes('firm') ? 'bg-red-500/20' : ''
-            }`}>
-            <p className="font-bold">{msg.user || 'User'}</p>
-            <p>{msg.text}</p>
-            <p className="text-xs text-muted-foreground italic">{msg.impact}</p>
+          <div key={index} className={`flex flex-col mb-4 ${msg.userId === userId ? 'items-end' : 'items-start'}`}>
+            <div className={`p-2 rounded-lg ${
+                msg.userId === userId ? 'bg-primary text-primary-foreground' : 'bg-muted'
+              } ${
+                msg.impact.includes('gentle') ? 'border-l-4 border-green-400' :
+                msg.impact.includes('balanced') ? 'border-l-4 border-blue-400' :
+                msg.impact.includes('firm') ? 'border-l-4 border-red-400' : ''
+              }`}>
+              <p className="font-bold">{msg.userId === userId ? 'You' : 'Partner'}</p>
+              <p>{msg.text}</p>
+              <p className="text-xs text-muted-foreground italic">{msg.impact}</p>
+            </div>
           </div>
         ))}
         <div ref={messagesEndRef} />

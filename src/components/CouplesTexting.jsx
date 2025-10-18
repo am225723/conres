@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import Pusher from 'pusher-js';
 import { nanoid } from 'nanoid';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { supabase } from '../lib/supabase';
 
 import Chat from './Chat';
 
 const CouplesTexting = ({ firmness }) => {
-  const [pusher, setPusher] = useState(null);
-  const [channel, setChannel] = useState(null);
   const [session, setSession] = useState(null);
   const [sessionId, setSessionId] = useState('');
   const [userId, setUserId] = useState('');
+  const [channel, setChannel] = useState(null);
 
   useEffect(() => {
     let storedUserId = localStorage.getItem('userId');
@@ -20,25 +19,6 @@ const CouplesTexting = ({ firmness }) => {
       localStorage.setItem('userId', storedUserId);
     }
     setUserId(storedUserId);
-
-    try {
-      const pusherInstance = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
-        cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-        authEndpoint: '/api/pusher-auth',
-        auth: {
-          params: {
-            userId: storedUserId,
-          },
-        },
-      });
-      setPusher(pusherInstance);
-      return () => {
-        pusherInstance.disconnect();
-      };
-    } catch (e) {
-      console.error("Failed to initialize Pusher:", e);
-      toast.error("Could not connect to the real-time service.");
-    }
   }, []);
 
   const createSession = async () => {
@@ -50,8 +30,7 @@ const CouplesTexting = ({ firmness }) => {
         throw new Error('Failed to create session');
       }
       const { sessionId: newSessionId } = await response.json();
-      const channelName = `presence-session-${newSessionId}`;
-      const newChannel = pusher.subscribe(channelName);
+      const newChannel = supabase.channel(`session-${newSessionId}`);
       setChannel(newChannel);
       setSession({ id: newSessionId, status: 'waiting' });
       setSessionId(newSessionId);
@@ -67,14 +46,13 @@ const CouplesTexting = ({ firmness }) => {
       toast.error('Please enter a session ID.');
       return;
     }
-    const channelName = `presence-session-${sessionId}`;
-    const newChannel = pusher.subscribe(channelName);
+    const newChannel = supabase.channel(`session-${sessionId}`);
     setChannel(newChannel);
     setSession({ id: sessionId, status: 'active' });
   };
 
   if (session) {
-    return <Chat channel={channel} firmness={firmness} />;
+    return <Chat channel={channel} firmness={firmness} userId={userId} />;
   }
 
   return (
