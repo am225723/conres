@@ -20,3 +20,4 @@ yarn-error.log*
 netlify/functions/node_modules
 /functions/node_modules
 .netlify
+.env
