@@ -29,21 +29,23 @@ export const generateSessionCode = () => {
 // Helper function to create a new session
 export const createSession = async () => {
   try {
-    const response = await fetch('/api/create-session', {
-      method: 'POST',
-    });
+    const sessionCode = generateSessionCode();
+    
+    const { data, error } = await supabase
+      .from('sessions')
+      .insert([
+        {
+          session_code: sessionCode,
+          status: 'waiting',
+          participant_count: 0
+        }
+      ])
+      .select()
+      .single();
 
-    if (!response.ok) {
-      throw new Error('Failed to create session');
-    }
-
-    const data = await response.json();
-
-    if (data.success) {
-      return { success: true, session: { id: data.sessionId, session_code: data.sessionCode } };
-    } else {
-      throw new Error(data.error || 'Unknown error');
-    }
+    if (error) throw error;
+    
+    return { success: true, session: data };
   } catch (error) {
     console.error('Error creating session:', error);
     return { success: false, error: error.message };
