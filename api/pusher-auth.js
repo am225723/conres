@@ -1,4 +1,4 @@
-const Pusher = require('pusher');
+import Pusher from 'pusher';
 
 const pusher = new Pusher({
   appId: process.env.VITE_PUSHER_APP_ID,
@@ -8,7 +8,7 @@ const pusher = new Pusher({
   useTLS: true
 });
 
-module.exports = (req, res) => {
+export default (req, res) => {
   try {
     // Validate required parameters
     if (!req.body || typeof req.body !== 'object') {
@@ -23,6 +23,10 @@ module.exports = (req, res) => {
 
     if (!channel) {
       return res.status(400).json({ error: 'Missing channel_name parameter' });
+    }
+
+    if (!userId) {
+      return res.status(400).json({ error: 'Missing userId parameter' });
     }
 
     const presenseData = {
