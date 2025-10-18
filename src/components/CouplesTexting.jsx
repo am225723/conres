@@ -11,12 +11,25 @@ const CouplesTexting = ({ firmness }) => {
   const [channel, setChannel] = useState(null);
   const [session, setSession] = useState(null);
   const [sessionId, setSessionId] = useState('');
+  const [userId, setUserId] = useState('');
 
   useEffect(() => {
+    let storedUserId = localStorage.getItem('userId');
+    if (!storedUserId) {
+      storedUserId = nanoid(10);
+      localStorage.setItem('userId', storedUserId);
+    }
+    setUserId(storedUserId);
+
     try {
       const pusherInstance = new Pusher(import.meta.env.VITE_PUSHER_KEY, {
         cluster: import.meta.env.VITE_PUSHER_CLUSTER,
-        authEndpoint: '/.netlify/functions/pusher-auth',
+        authEndpoint: '/api/pusher-auth',
+        auth: {
+          params: {
+            userId: storedUserId,
+          },
+        },
       });
       setPusher(pusherInstance);
       return () => {
@@ -28,13 +41,25 @@ const CouplesTexting = ({ firmness }) => {
     }
   }, []);
 
-  const createSession = () => {
-    const newSessionId = nanoid(10);
-    const channelName = `presence-session-${newSessionId}`;
-    const newChannel = pusher.subscribe(channelName);
-    setChannel(newChannel);
-    setSession({ id: newSessionId, status: 'waiting' });
-    toast.info('Session created! Share the ID with your partner.');
+  const createSession = async () => {
+    try {
+      const response = await fetch('/api/create-session', {
+        method: 'POST',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to create session');
+      }
+      const { sessionId: newSessionId } = await response.json();
+      const channelName = `presence-session-${newSessionId}`;
+      const newChannel = pusher.subscribe(channelName);
+      setChannel(newChannel);
+      setSession({ id: newSessionId, status: 'waiting' });
+      setSessionId(newSessionId);
+      toast.info('Session created! Share the ID with your partner.');
+    } catch (error) {
+      console.error('Error creating session:', error);
+      toast.error('Could not create a new session.');
+    }
   };
 
   const joinSession = () => {
