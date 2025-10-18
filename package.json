@@ -24,6 +24,8 @@
     "@supabase/supabase-js": "^2.75.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "cors": "^2.8.5",
+    "express": "^5.1.0",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.285.0",
     "nanoid": "^5.1.6",

@@ -1,6 +1,21 @@
+import express from 'express';
+import cors from 'cors';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
 import fetch from 'node-fetch';
 
-export default async function handler(req, res) {
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
+const app = express();
+const PORT = 3001;
+
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// Perplexity API endpoint
+app.post('/api/perplexity', async (req, res) => {
   const { PPLX_API_KEY } = process.env;
 
   if (!PPLX_API_KEY) {
@@ -51,4 +66,30 @@ export default async function handler(req, res) {
     console.error('Error calling Perplexity API:', error);
     res.status(500).json({ error: 'Internal Server Error' });
   }
+});
+
+// Create session endpoint
+app.post('/api/create-session', async (req, res) => {
+  try {
+    // Import the createSession function from the api file
+    const { default: createSessionHandler } = await import('./api/create-session.js');
+    return createSessionHandler(req, res);
+  } catch (error) {
+    console.error('Error in create-session:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Serve static files from the dist directory in production
+if (process.env.NODE_ENV === 'production') {
+  app.use(express.static(join(__dirname, 'dist')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(join(__dirname, 'dist', 'index.html'));
+  });
 }
+
+app.listen(PORT, () => {
+  console.log(`API server running on http://localhost:${PORT}`);
+  console.log(`Perplexity API endpoint: http://localhost:${PORT}/api/perplexity`);
+});

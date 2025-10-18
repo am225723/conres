@@ -8,7 +8,7 @@ import {
   supabase 
 } from '../lib/supabase';
 
-const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
+const ChatFixed = ({ session, firmness, userId, nickname, onLeave }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState('');
   const [participants, setParticipants] = useState([]);
@@ -19,6 +19,21 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
   const messagesEndRef = useRef(null);
   const channelRef = useRef(null);
   const pollingIntervalRef = useRef(null);
+
+  // Calculate impact preview based on message content
+  const impactPreview = useMemo(() => {
+    if (!message) return "—";
+    
+    const isAccusatory = /\byou\b(?!.*I feel)/i.test(message) && /never|always|should|fault/i.test(message);
+    const firmnessValue = firmness?.[0] || 50;
+    const firmnessLabel = firmnessValue < 40 ? "gentle" : firmnessValue < 70 ? "balanced" : "firm";
+    
+    return `Tone reads ${firmnessLabel}. ${
+      isAccusatory 
+        ? "Note: may sound blaming — consider focusing more on 'I feel' + a concrete request." 
+        : "Likely to be received as self-focused and constructive."
+    }`;
+  }, [message, firmness]);
 
   // Polling fallback for when realtime fails
   const startPolling = () => {
@@ -53,21 +68,6 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
       pollingIntervalRef.current = null;
     }
   };
-
-  // Calculate impact preview based on message content
-  const impactPreview = useMemo(() => {
-    if (!message) return "—";
-    
-    const isAccusatory = /\byou\b(?!.*I feel)/i.test(message) && /never|always|should|fault/i.test(message);
-    const firmnessValue = firmness?.[0] || 50;
-    const firmnessLabel = firmnessValue < 40 ? "gentle" : firmnessValue < 70 ? "balanced" : "firm";
-    
-    return `Tone reads ${firmnessLabel}. ${
-      isAccusatory 
-        ? "Note: may sound blaming — consider focusing more on 'I feel' + a concrete request." 
-        : "Likely to be received as self-focused and constructive."
-    }`;
-  }, [message, firmness]);
 
   // Load message history and participants on mount
   useEffect(() => {
@@ -392,4 +392,4 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
   );
 };
 
-export default Chat;
+export default ChatFixed;
