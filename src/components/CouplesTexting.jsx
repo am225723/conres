@@ -43,7 +43,7 @@ const CouplesTexting = ({ firmness }) => {
 
   const createSession = async () => {
     try {
-      const response = await fetch('/api/create-session.js', {
+      const response = await fetch('/api/create-session', {
         method: 'POST',
       });
       if (!response.ok) {
