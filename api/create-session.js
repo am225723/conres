@@ -1,21 +1,6 @@
-import { createClient } from '@supabase/supabase-js';
+const { createClient } = require('@supabase/supabase-js');
 
-const supabaseUrl = process.env.SUPABASE_URL;
-const supabaseAnonKey = process.env.SUPABASE_ANON_KEY;
-
-const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Helper function to generate session code
-const generateSessionCode = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let code = '';
-  for (let i = 0; i < 8; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return code;
-};
-
-export default async (req, res) => {
+export default async function handler(req, res) {
   // Enable CORS
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -26,40 +11,41 @@ export default async (req, res) => {
   }
 
   if (req.method !== 'POST') {
-    res.setHeader('Allow', ['POST']);
-    return res.status(405).end(`Method ${req.method} Not Allowed`);
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
   try {
-    const sessionCode = generateSessionCode();
+    const { user1_id, user2_id } = req.body;
 
+    if (!user1_id || !user2_id) {
+      return res.status(400).json({ error: 'Missing required fields: user1_id, user2_id' });
+    }
+
+    // Initialize Supabase client
+    const supabase = createClient(
+      process.env.SUPABASE_URL,
+      process.env.SUPABASE_SERVICE_ROLE_KEY
+    );
+
+    // Create session
     const { data, error } = await supabase
       .from('sessions')
-      .insert([
-        {
-          session_code: sessionCode,
-          status: 'waiting',
-          participant_count: 0
-        }
-      ])
+      .insert({
+        user1_id,
+        user2_id,
+        created_at: new Date().toISOString()
+      })
       .select()
       .single();
 
     if (error) {
-      throw error;
+      console.error('Supabase error:', error);
+      return res.status(500).json({ error: error.message });
     }
 
-    res.status(200).json({
-      sessionId: data.id,
-      sessionCode: data.session_code,
-      success: true
-    });
+    res.status(200).json({ success: true, session: data });
   } catch (error) {
-    console.error('Error creating session in Supabase:', error);
-    res.status(500).json({
-      error: 'Failed to create session',
-      details: error.message,
-      success: false
-    });
+    console.error('Error creating session:', error);
+    res.status(500).json({ error: error.message });
   }
-};
+}

@@ -27,20 +27,28 @@ export const generateSessionCode = () => {
 };
 
 // Helper function to create a new session
-export const createSession = async () => {
+export const createSession = async (user1Id = 'user1', user2Id = 'user2') => {
   try {
     const response = await fetch('/api/create-session', {
       method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        user1_id: user1Id,
+        user2_id: user2Id
+      })
     });
 
     if (!response.ok) {
-      throw new Error('Failed to create session');
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.error || `HTTP ${response.status}: Failed to create session`);
     }
 
     const data = await response.json();
 
     if (data.success) {
-      return { success: true, session: { id: data.sessionId, session_code: data.sessionCode } };
+      return { success: true, session: data.session };
     } else {
       throw new Error(data.error || 'Unknown error');
     }
