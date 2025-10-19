@@ -1,61 +1,70 @@
-# Chat Debugging Tasks
+# Couple's Messaging Platform - Comprehensive Debugging & Enhancement Todo
 
-## Issues Identified ✅ RESOLVED
-1. **Perplexity API not being called** - ✅ FIXED: Created local API server
-2. **Messages not appearing in chat** - ✅ FIXED: Added polling fallback for realtime issues
-3. **Messages disappear on reopen** - ✅ FIXED: Enhanced message loading and persistence
+## 1. Initial Analysis & Setup
+- [x] Review package.json and dependencies
+- [x] Examine Supabase configuration and schema
+- [x] Review existing documentation files
+- [x] Analyze current implementation of key components
+- [x] Review existing fixes and current status
 
-## Debugging Steps
+## 2. Session Creation Issues
+- [x] Review api/create-session.js implementation
+- [x] Check Supabase schema for sessions table
+- [x] Test session creation functionality
+- [x] Identify and fix session creation bugs
+- [x] Implement alternative session management solution if needed
+- [x] Verify session persistence and retrieval
 
-### [x] Check API Server Setup
-- [x] Verify if API server is running on port 3001
-- [x] Set up local API server if needed
-- [x] Test Perplexity API endpoint
+## 3. Real-time Messaging Updates
+- [x] Review current polling fallback implementation
+- [x] Check Supabase real-time configuration and RLS policies
+- [x] Test message updates and synchronization
+- [x] Optimize real-time subscription setup
+- [x] Implement message tone analysis for background color changes
+- [x] Add visual feedback for connection status
 
-### [x] Debug Message Display Issues
-- [x] Check Supabase real-time subscription
-- [x] Verify message insertion in database
-- [x] Test message retrieval functionality
+## 4. AI Integration (Perplexity)
+- [x] Review api/perplexity.js implementation
+- [x] Check API key configuration and server.js setup
+- [x] Test AI statement generator functionality
+- [x] Fix any remaining API call issues
+- [x] Ensure proper error handling and user feedback
+- [x] Add retry logic for failed API calls
 
-### [x] Test Environment Variables
-- [x] Check if PPLX_API_KEY is configured
-- [x] Verify Supabase connection settings
+## 5. Emotion Tracking & Sentiment Analysis Implementation
+- [x] Create database schema for emotion tracking (message_emotions, emotion_patterns, emotion_journal)
+- [x] Implement emotion detection service using AI
+- [x] Create emotion visualization components (timeline, gauge, color-coded bubbles)
+- [x] Add pattern recognition functionality
+- [x] Implement emotion journal feature
+- [x] Integrate emotion analysis with message sending
+- [x] Add emotion-based background color changes
 
-### [x] Fix Issues
-- [x] Implement local API server solution
-- [x] Fix real-time subscription if needed
-- [x] Test complete chat functionality
+## 6. Color Palette Adjustment
+- [x] Review current color scheme in tailwind.config.js
+- [x] Design new color palette for better UX
+- [x] Update CSS/Tailwind configuration
+- [x] Apply new colors throughout the app
+- [x] Ensure accessibility (contrast ratios)
 
-## Summary of Fixes Applied
+## 7. Code Optimization & Bug Fixes
+- [x] Fix identified bugs in components
+- [x] Optimize database queries
+- [x] Improve error handling across all components
+- [x] Add proper logging and debugging tools
+- [x] Remove duplicate code and improve modularity
 
-### ✅ Perplexity API Fixed
-- Created `server.js` Express server for local development
-- Configured proper API proxy in Vite
-- Added CORS and environment variable handling
-- API endpoint now accessible at `/api/perplexity`
+## 8. Testing & Validation
+- [x] Test session creation flow end-to-end
+- [x] Test real-time messaging with multiple users
+- [x] Test AI integration with various inputs
+- [x] Test emotion tracking features
+- [ ] Perform cross-browser testing (requires deployment)
+- [ ] Test mobile responsiveness (requires deployment)
 
-### ✅ Real-time Issues Fixed
-- Identified that Supabase Realtime is not properly configured
-- Implemented polling fallback mechanism (2-second intervals)
-- Added 5-second timeout detection for realtime failures
-- Enhanced error handling with user notifications
-- Added visual indicators for polling mode
-
-### ✅ Message Persistence Fixed
-- Enhanced message loading on component mount
-- Improved cleanup of subscriptions and polling intervals
-- Added proper error handling for database operations
-
-## Current Status
-- ✅ Chat application works with automatic fallback
-- ✅ Messages are saved and retrieved properly
-- ✅ Perplexity API calls work when API key is configured
-- ✅ Polling mode ensures functionality when realtime fails
-- ⚠️ Realtime can be enabled by configuring Supabase publications (optional)
-
-## Files Created/Modified
-- ✅ `server.js` - New API server
-- ✅ `src/components/Chat.jsx` - Enhanced with polling fallback
-- ✅ `.env` - Environment variables
-- ✅ `CHAT_DEBUG_GUIDE.md` - Comprehensive documentation
-- ✅ Debugging tools for testing
+## 9. Documentation & Report
+- [x] Document all changes made
+- [x] Create comprehensive debugging report
+- [x] Provide recommendations for future improvements
+- [x] Update README and setup instructions
+- [x] Create deployment guide updates
