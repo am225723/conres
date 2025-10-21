@@ -9,6 +9,8 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+npm_output.log
+vercel_output.log
 
 # Misc
 .DS_Store

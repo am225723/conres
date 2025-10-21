@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
 import { 
   sendMessage, 
@@ -7,6 +7,38 @@ import {
   leaveSession,
   supabase 
 } from '../lib/supabase';
+import AiModal from './AiModal';
+
+const toneColorMap = {
+  Calm: '#A0D2EB',
+  Reassuring: '#4A90E2',
+  Empathetic: '#A9D8B8',
+  Compassionate: '#50C878',
+  Cooperative: '#228B22',
+  Curious: '#FDFD96',
+  Assertive: '#FFD700',
+  Anxious: '#FDE74C',
+  Impatient: '#FFA500',
+  'Passive-aggressive': '#AD8350',
+  Sarcastic: '#BF8231',
+  Judgmental: '#D2691E',
+  Dismissive: '#E25822',
+  Blaming: '#E62020',
+  Aggressive: '#D40000',
+  Confrontational: '#B80F0A',
+  Hostile: '#8B0000',
+};
+
+const getToneColor = (tone) => {
+  if (!tone) return '#FFFFFF'; // Default color
+  const lowerTone = tone.toLowerCase();
+  for (const key in toneColorMap) {
+    if (lowerTone.includes(key.toLowerCase())) {
+      return toneColorMap[key];
+    }
+  }
+  return '#FFFFFF'; // Default if no match
+};
 
 const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
   const [messages, setMessages] = useState([]);
@@ -15,7 +47,15 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const [isAiHelping, setIsAiHelping] = useState(false);
+  const [impactPreview, setImpactPreview] = useState('—');
+  const [isAnalyzingTone, setIsAnalyzingTone] = useState(false);
+  const [sendDisabledUntil, setSendDisabledUntil] = useState(0);
   const [realtimeEnabled, setRealtimeEnabled] = useState(true);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [modalTitle, setModalTitle] = useState('');
+  const [modalInitialMessage, setModalInitialMessage] = useState('');
+  const [currentTone, setCurrentTone] = useState(null);
+  const [chatBackgroundColor, setChatBackgroundColor] = useState('#FFFFFF');
   const messagesEndRef = useRef(null);
   const channelRef = useRef(null);
   const pollingIntervalRef = useRef(null);
@@ -54,20 +94,45 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
     }
   };
 
-  // Calculate impact preview based on message content
-  const impactPreview = useMemo(() => {
-    if (!message) return "—";
-    
-    const isAccusatory = /\byou\b(?!.*I feel)/i.test(message) && /never|always|should|fault/i.test(message);
-    const firmnessValue = firmness?.[0] || 50;
-    const firmnessLabel = firmnessValue < 40 ? "gentle" : firmnessValue < 70 ? "balanced" : "firm";
-    
-    return `Tone reads ${firmnessLabel}. ${
-      isAccusatory 
-        ? "Note: may sound blaming — consider focusing more on 'I feel' + a concrete request." 
-        : "Likely to be received as self-focused and constructive."
-    }`;
-  }, [message, firmness]);
+  // Analyze tone using AI with debounce
+  useEffect(() => {
+    const handler = setTimeout(async () => {
+      if (!message.trim()) {
+        setImpactPreview('—');
+        return;
+      }
+
+      setIsAnalyzingTone(true);
+      setImpactPreview('Analyzing...');
+
+      const prompt = `Analyze the tone of this message in a couples therapy context: "${message}". Respond with just one or two words from this list: Calm, Reassuring, Empathetic, Compassionate, Cooperative, Curious, Assertive, Anxious, Impatient, Passive-aggressive, Sarcastic, Judgmental, Dismissive, Blaming, Aggressive, Confrontational, Hostile.`;
+
+      try {
+        const response = await fetch('/api/perplexity', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+
+        const result = await response.json();
+        const tone = result.choices[0].message.content.trim();
+        setCurrentTone(tone);
+        setImpactPreview(`Tone detected: ${tone}`);
+        setSendDisabledUntil(Date.now() + 1000); // Disable send for 1 second after analysis
+      } catch (e) {
+        console.error('Error analyzing tone:', e);
+        setImpactPreview('Could not analyze tone.');
+      } finally {
+        setIsAnalyzingTone(false);
+      }
+    }, 250); // 250ms debounce
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [message]);
 
   // Load message history and participants on mount
   useEffect(() => {
@@ -112,7 +177,12 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
         { event: 'INSERT', schema: 'public', table: 'messages', filter: `session_id=eq.${session.id}` },
         (payload) => {
           console.log('✅ New message received via realtime:', payload);
-          setMessages((prev) => [...prev, payload.new]);
+          const newMessage = payload.new;
+          setMessages((prev) => [...prev, newMessage]);
+
+          if (newMessage.tone_analysis?.tone) {
+            setChatBackgroundColor(getToneColor(newMessage.tone_analysis.tone));
+          }
           subscriptionSuccessful = true;
         }
       )
@@ -176,29 +246,21 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
 
     setIsSending(true);
     try {
-      const firmnessValue = firmness?.[0] || 50;
-      const firmnessLabel = firmnessValue < 40 ? "gentle" : firmnessValue < 70 ? "balanced" : "firm";
-      
       const toneAnalysis = {
+        tone: currentTone,
         impactPreview,
-        firmnessLevel: firmnessLabel,
-        firmnessValue
+        firmnessLevel: currentTone,
       };
 
+      setChatBackgroundColor(getToneColor(currentTone));
       const result = await sendMessage(session.id, userId, message, toneAnalysis);
 
-      if (result.success) {
+      if (result.success && result.message) {
+        // Manually add the new message to the state so it appears instantly for the sender.
+        // The realtime subscription will handle it for the other participant.
+        setMessages(prev => [...prev, result.message]);
         setMessage('');
-        
-        // If using polling, manually refresh messages
-        if (!realtimeEnabled) {
-          setTimeout(async () => {
-            const messagesResult = await getMessageHistory(session.id);
-            if (messagesResult.success) {
-              setMessages(messagesResult.messages);
-            }
-          }, 500);
-        }
+        setCurrentTone(null);
       } else {
         toast.error('Failed to send message');
       }
@@ -217,63 +279,42 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
     }
   };
 
-  const suggestReply = async () => {
+  const suggestReply = () => {
     const lastMessage = messages[messages.length - 1];
     if (!lastMessage) {
       toast.info("No message to reply to.");
       return;
     }
-    
-    setIsAiHelping(true);
-    const prompt = `Based on the last message "${lastMessage.message_text}", suggest a supportive and constructive reply.`;
-
-    try {
-      const response = await fetch('/api/perplexity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const result = await response.json();
-      setMessage(result.choices[0].message.content);
-      toast.success("Suggested reply has been filled in the message box.");
-    } catch (e) {
-      console.error('Error getting suggested reply:', e);
-      toast.error("Failed to get suggested reply.");
-    } finally {
-      setIsAiHelping(false);
-    }
+    setModalTitle('Suggest a Reply');
+    setModalInitialMessage(`Based on the last message: "${lastMessage.message_text}", what kind of reply would you like to send? For example, you could ask for a more empathetic, assertive, or understanding response.`);
+    setIsModalOpen(true);
   };
 
-  const rewordAsIStatement = async () => {
+  const rewordAsIStatement = () => {
     if (!message.trim()) {
       toast.info("Please type a message to reword.");
       return;
     }
+    setModalTitle('Reword as I-Statement');
+    setModalInitialMessage(`You want to reword this message as an I-statement: "${message}". What is the core feeling or need you want to express?`);
+    setIsModalOpen(true);
+  };
 
-    setIsAiHelping(true);
-    const prompt = `Reword the following message as an I-statement: "${message}"`;
+  const handleInvitePartner = () => {
+    const inviteLink = `${window.location.origin}/couples?session=${session.session_code}`;
+    const messageBody = `Join our interactive session: ${inviteLink}`;
+    const smsLink = `sms:?body=${encodeURIComponent(messageBody)}`;
 
-    try {
-      const response = await fetch('/api/perplexity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
+    // Attempt to open the messaging app
+    window.location.href = smsLink;
 
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const result = await response.json();
-      setMessage(result.choices[0].message.content);
-      toast.success("Message has been reworded as an I-statement.");
-    } catch (e) {
-      console.error('Error rewording message:', e);
-      toast.error("Failed to reword message.");
-    } finally {
-      setIsAiHelping(false);
-    }
+    // Also, copy to clipboard as a fallback
+    navigator.clipboard.writeText(inviteLink).then(() => {
+      toast.success('Invite link copied to clipboard!');
+    }, (err) => {
+      toast.error('Could not copy invite link.');
+      console.error('Clipboard write failed:', err);
+    });
   };
 
   const handleLeaveSession = async () => {
@@ -301,9 +342,23 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
   }
 
   return (
-    <div className="flex flex-col h-[calc(100vh-150px)] max-w-2xl mx-auto bg-card rounded-lg shadow-lg">
-      <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
-        <div>
+    <>
+      <AiModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title={modalTitle}
+        initialMessage={modalInitialMessage}
+        onInsert={(text) => {
+          setMessage(text);
+          toast.success('Text inserted!');
+        }}
+      />
+      <div
+        className={`flex flex-col h-[calc(100vh-150px)] max-w-2xl mx-auto bg-card rounded-lg shadow-lg ${isModalOpen ? 'hidden' : ''}`}
+        style={{ backgroundColor: chatBackgroundColor, transition: 'background-color 0.5s ease' }}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-border bg-muted/30">
+          <div>
           <h2 className="text-lg font-bold text-foreground">Session: {session.session_code}</h2>
           <p className="text-xs text-foreground/60">
             {participants.length} participant{participants.length !== 1 ? 's' : ''} online
@@ -312,9 +367,14 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
             )}
           </p>
         </div>
-        <button onClick={handleLeaveSession} className="bg-destructive/10 hover:bg-destructive/20 text-destructive px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-          Leave
-        </button>
+        <div className="flex gap-2">
+          <button onClick={handleInvitePartner} className="bg-primary/10 hover:bg-primary/20 text-primary px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            Invite Partner
+          </button>
+          <button onClick={handleLeaveSession} className="bg-destructive/10 hover:bg-destructive/20 text-destructive px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+            Leave
+          </button>
+        </div>
       </div>
 
       <div className="flex-grow p-4 overflow-y-auto space-y-4">
@@ -361,10 +421,11 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
             className="flex-grow bg-input border border-border text-foreground placeholder:text-muted-foreground p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary resize-none"
             rows={2}
             disabled={isSending}
+            style={{ backgroundColor: getToneColor(currentTone), transition: 'background-color 0.5s ease' }}
           />
           <button
             onClick={handleSendMessage}
-            disabled={!message.trim() || isSending}
+            disabled={!message.trim() || isSending || isAnalyzingTone || Date.now() < sendDisabledUntil}
             className="bg-primary text-primary-foreground px-6 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSending ? 'Sending...' : 'Send'}
@@ -389,6 +450,7 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
         </div>
       </div>
     </div>
+    </>
   );
 };
 
