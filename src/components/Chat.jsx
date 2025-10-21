@@ -364,7 +364,7 @@ const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
             setIsSending(false);
         }
     };
-    // *** END OF MODIFIED handleSendMessage ***
+// *** END OF MODIFIED handleSendMessage ***
 
     // handleKeyPress (keep as is)
     const handleKeyPress = (e) => {
