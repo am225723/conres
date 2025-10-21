@@ -12,7 +12,8 @@ import {
   saveEmotionAnalysis,
   getEmotionColor,
   detectEmotionPatterns
-} from '../lib/emotionService.js';
+} from '../lib/EmotionService.js';
+
 import AiModal from './AiModal';
 
 const Chat = ({ session, firmness, userId, nickname, onLeave }) => {
