@@ -32,6 +32,14 @@ const CouplesTexting = ({ firmness }) => {
     if (storedNickname) {
       setNickname(storedNickname);
     }
+
+    // Check for session code in URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const sessionFromUrl = urlParams.get('session');
+    if (sessionFromUrl) {
+      setSessionCode(sessionFromUrl);
+      toast.info(`Joining session ${sessionFromUrl}...`);
+    }
   }, []);
 
   const handleCreateSession = async () => {
