@@ -12,7 +12,7 @@ import {
   saveEmotionAnalysis,
   getEmotionColor,
   detectEmotionPatterns
-} from '../lib/EmotionService.js';
+} from '../lib/emotionService.js';
 
 import AiModal from './AiModal';
 
