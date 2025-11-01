@@ -1,0 +1,43 @@
+Here is a detailed breakdown of the Couples Texting module and its features, updated with your new specifications.
+The Couples Texting module is a sophisticated, mobile-first messaging platform designed to help partners communicate more effectively. It provides a private chat environment enhanced with a multi-layered AI system that analyzes tone and emotion in real-time, offering instant feedback and constructive suggestions to foster healthier dialogue.
+Core Features
+ * Real-time Messaging: A private, secure chat session for two users. It uses Supabase Realtime for instant message delivery and includes an automatic polling fallback to ensure messages are delivered even if the real-time connection is unstable.
+ * Session Management: Users can easily create new, private chat sessions identified by unique 8-character codes or join existing sessions. It supports nicknames for personalization and tracks participants.
+ * Live Tone Analysis: As a user types a message, the AI analyzes the text in real-time. The text input box itself will change color to provide immediate, private feedback on the perceived tone before the message is even sent.
+ * "I-Statement" Suggestion: When the user hits "Send" on their original message, the AI intercepts it and generates a constructive "I-Statement" version. The user is then presented with a choice: send their original message or send the AI-suggested I-Statement, promoting a moment of reflection.
+ * Dynamic Chat Background: After a message is sent, the AI analyzes its final tone. The main chat background for both users then smoothly transitions to a color corresponding to that tone, creating a shared visual environment that reflects the emotional temperature of the conversation.
+AI-Powered Tone Analysis
+The AI analyzes both the text being typed (for the text box color) and the message being sent (for the background color) based on the following tones:
+ * Calm: #AEC6CF (A soft, serene blue)
+ * Reassuring: #77AADD (A stable, slightly deeper blue)
+ * Empathetic: #66CDAA (A gentle, understanding blue-green)
+ * Compassionate: #98FB98 (A soft, pale green)
+ * Cooperative: #5DBB63 (A standard, agreeable green)
+ * Curious: #FDFD96 (A bright, light yellow)
+ * Assertive: #FFD700 (A confident, solid gold-yellow)
+ * Passive-aggressive: #E09F3E (A muted, unclear yellow-orange)
+ * Sarcastic: #DAA520 (A "biting" or "sour" goldenrod)
+ * Anxious: #FFA500 (A vibrating, nervous orange)
+ * Impatient: #FF8C00 (A "hotter," more urgent dark orange)
+ * Dismissive: #FF6347 (A "stop" or "rejecting" tomato red-orange)
+ * Judgmental: #FF4500 (A harsh, accusatory orange-red)
+ * Blaming: #FF0000 (A direct, classic "alert" red)
+ * Confrontational: #DC143C (A deep, challenging crimson)
+ * Aggressive: #B22222 (A strong, "firebrick" red)
+ * Hostile: #8B0000 (A deep, dark red)
+Emotion Tracking System
+Beyond the immediate, in-chat tone analysis, the module features a deeper emotion tracking system to analyze long-term patterns:
+ * Long-Term Emotion Detection: Analyzes messages for 11 core emotions (like Joy, Love, Sadness, Anger, Gratitude) to track patterns over time, distinct from the immediate conversational tone.
+ * Intensity Measurement: Tracks the strength of these core emotions on a 1-10 scale.
+ * Sentiment Analysis: Provides an overall positivity/negativity score for messages.
+ * Pattern Recognition: Identifies recurring communication patterns, such as emotional escalation, de-escalation, and potential triggers.
+ * Visualizations: Offers several dashboards to review emotional data:
+   * Emotion Timeline: A graph showing the emotional progression of a conversation.
+   * Emotion Gauge: A display of the "emotional temperature" and average intensity.
+   * Emotion Distribution: A chart showing the breakdown of all emotions used.
+ * Emotion Journal: A private space for users to log their feelings before and after chat sessions, add notes, and track insights over time.
+Mobile-First Redesign
+The entire platform interface has been redesigned from the ground up with a mobile-first philosophy, creating a visually striking and intuitive experience.
+ * Visually Stunning Interface: The new design is clean, modern, and "visually shocking." It uses glass morphism (blurred, semi-transparent backgrounds) and subtle floating animations to make UI elements like message bubbles and buttons feel light and responsive.
+ * Fluid Animations & Transitions: Every interaction is enhanced with smooth, physics-based animations. Tapping buttons provides satisfying feedback, new messages slide into view, and the dynamic background color changes are slow, smooth fades, creating an immersive, high-end feel.
+ * Mobile-Optimized Layout: The layout is optimized for single-hand use on a mobile device. Key controls (like the text box and send button) are placed within easy thumb-reach. Navigation is gesture-based, allowing users to swipe between the chat and their emotion dashboards.
