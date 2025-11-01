@@ -1,0 +1,16 @@
+Emotion Tracking System
+​Beyond the immediate, in-chat tone analysis, the module features a deeper emotion tracking system to analyze long-term patterns:
+​Long-Term Emotion Detection: Analyzes messages for 11 core emotions (like Joy, Love, Sadness, Anger, Gratitude) to track patterns over time, distinct from the immediate conversational tone.
+​Intensity Measurement: Tracks the strength of these core emotions on a 1-10 scale.
+​Sentiment Analysis: Provides an overall positivity/negativity score for messages.
+​Pattern Recognition: Identifies recurring communication patterns, such as emotional escalation, de-escalation, and potential triggers.
+​Visualizations: Offers several dashboards to review emotional data:
+​Emotion Timeline: A graph showing the emotional progression of a conversation.
+​Emotion Gauge: A display of the "emotional temperature" and average intensity.
+​Emotion Distribution: A chart showing the breakdown of all emotions used.
+​Emotion Journal: A private space for users to log their feelings before and after chat sessions, add notes, and track insights over time.
+​Mobile-First Redesign
+​The entire platform interface has been redesigned from the ground up with a mobile-first philosophy, creating a visually striking and intuitive experience.
+​Visually Stunning Interface: The new design is clean, modern, and "visually shocking." It uses glass morphism (blurred, semi-transparent backgrounds) and subtle floating animations to make UI elements like message bubbles and buttons feel light and responsive.
+​Fluid Animations & Transitions: Every interaction is enhanced with smooth, physics-based animations. Tapping buttons provides satisfying feedback, new messages slide into view, and the dynamic background color changes are slow, smooth fades, creating an immersive, high-end feel.
+​Mobile-Optimized Layout: The layout is optimized for single-hand use on a mobile device. Key controls (like the text box and send button) are placed within easy thumb-reach. Navigation is gesture-based, allowing users to swipe between the chat and their emotion dashboards.

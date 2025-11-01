@@ -8,7 +8,7 @@ import {
   supabase 
 } from '../lib/supabase';
 
-import Chat from './Chat';
+import ChatEnhanced from './ChatEnhanced';
 
 const CouplesTexting = ({ firmness }) => {
   const [session, setSession] = useState(null);
@@ -127,9 +127,8 @@ const CouplesTexting = ({ firmness }) => {
 
   if (session) {
     return (
-      <Chat 
+      <ChatEnhanced 
         session={session}
-        firmness={firmness} 
         userId={userId}
         nickname={nickname}
         onLeave={handleLeaveSession}

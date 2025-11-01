@@ -68,6 +68,131 @@ app.post('/api/perplexity', async (req, res) => {
   }
 });
 
+// Tone analysis endpoint
+app.post('/api/analyze-tone', async (req, res) => {
+  const { PPLX_API_KEY } = process.env;
+
+  if (!PPLX_API_KEY) {
+    return res.status(500).json({ error: 'Perplexity API key is not configured.' });
+  }
+
+  const { text } = req.body;
+
+  if (!text) {
+    return res.status(400).json({ error: 'Bad Request: Missing text' });
+  }
+
+  const prompt = `Analyze the emotional tone of this message and respond with ONLY ONE WORD from this list: calm, reassuring, empathetic, compassionate, cooperative, curious, assertive, passive-aggressive, sarcastic, anxious, impatient, dismissive, judgmental, blaming, confrontational, aggressive, hostile.
+
+Message: "${text}"
+
+Respond with only the single most appropriate tone word, nothing else.`;
+
+  try {
+    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${PPLX_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [
+          { role: "system", content: "You are a tone analysis expert. Respond with only one word." },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 50,
+        temperature: 0.3,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Perplexity API Error:', errorText);
+      return res.status(response.status).send(`Perplexity API Error: ${errorText}`);
+    }
+
+    const data = await response.json();
+    // Strip all non-letter characters and normalize tone response
+    const rawTone = data.choices[0].message.content.trim().toLowerCase();
+    const tone = rawTone.replace(/[^a-z-]/g, ''); // Keep only letters and hyphens for "passive-aggressive"
+    
+    // Validate against allowed tones, fallback to 'calm' if invalid
+    const validTones = [
+      'calm', 'reassuring', 'empathetic', 'compassionate', 'cooperative', 
+      'curious', 'assertive', 'passive-aggressive', 'sarcastic', 'anxious', 
+      'impatient', 'dismissive', 'judgmental', 'blaming', 'confrontational', 
+      'aggressive', 'hostile'
+    ];
+    const validatedTone = validTones.includes(tone) ? tone : 'calm';
+    
+    if (!validTones.includes(tone)) {
+      console.warn(`Invalid tone received from AI: "${rawTone}", normalized to: "${tone}", using fallback: calm`);
+    }
+    
+    res.status(200).json({ tone: validatedTone });
+  } catch (error) {
+    console.error('Error calling Perplexity API:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// I-Statement generation endpoint
+app.post('/api/generate-i-statement', async (req, res) => {
+  const { PPLX_API_KEY } = process.env;
+
+  if (!PPLX_API_KEY) {
+    return res.status(500).json({ error: 'Perplexity API key is not configured.' });
+  }
+
+  const { text } = req.body;
+
+  if (!text) {
+    return res.status(400).json({ error: 'Bad Request: Missing text' });
+  }
+
+  const prompt = `Convert this message into a constructive I-Statement format. Use this structure:
+"I feel [emotion] when [situation] because [impact]. I would like [request]."
+
+Make it empathetic, non-blaming, and focused on expressing feelings and needs constructively.
+
+Original message: "${text}"
+
+Respond with ONLY the I-Statement, no additional explanation.`;
+
+  try {
+    const response = await fetch("https://api.perplexity.ai/chat/completions", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${PPLX_API_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "sonar",
+        messages: [
+          { role: "system", content: "You are an expert communication coach. Convert messages to I-Statements." },
+          { role: "user", content: prompt },
+        ],
+        max_tokens: 200,
+        temperature: 0.7,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('Perplexity API Error:', errorText);
+      return res.status(response.status).send(`Perplexity API Error: ${errorText}`);
+    }
+
+    const data = await response.json();
+    const iStatement = data.choices[0].message.content.trim();
+    res.status(200).json({ iStatement });
+  } catch (error) {
+    console.error('Error calling Perplexity API:', error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 // Create session endpoint
 app.post('/api/create-session', async (req, res) => {
   try {
