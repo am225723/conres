@@ -53,7 +53,19 @@ externalPort = 3001
 localPort = 5000
 externalPort = 80
 
+[[ports]]
+localPort = 44263
+externalPort = 3000
+
 [deployment]
 deploymentTarget = "vm"
 run = ["node", "server.js"]
 build = ["npm", "run", "build"]
+
+[userenv]
+
+[userenv.shared]
+VITE_SUPABASE_URL = "https://efgtznvrnzqcxmfmjuue.supabase.co"
+VITE_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmZ3R6bnZybnpxY3htZm1qdXVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5OTAxMzIsImV4cCI6MjA2ODU2NjEzMn0.rSgmNYLj-hGuW4YeP0xNsjF8T1OYrUzdCS6cOvJAjx4"
+SUPABASE_URL = "https://efgtznvrnzqcxmfmjuue.supabase.co"
+SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVmZ3R6bnZybnpxY3htZm1qdXVlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTI5OTAxMzIsImV4cCI6MjA2ODU2NjEzMn0.rSgmNYLj-hGuW4YeP0xNsjF8T1OYrUzdCS6cOvJAjx4"
