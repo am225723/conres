@@ -33,10 +33,11 @@ export default async function handler(req, res) {
     const newSessionCode = generateSessionCode();
 
     // 3. Initialize Supabase client
-    // This MUST use the Service Role Key for server-side inserts
+    // Using the anon key for demo purposes
+    // In production, use a service role key for server-side operations
     const supabase = createClient(
       process.env.SUPABASE_URL,
-      process.env.SUPABASE_SERVICE_ROLE_KEY
+      process.env.SUPABASE_ANON_KEY
     );
 
     // 4. Create the session in the database
