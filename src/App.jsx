@@ -1,13 +1,12 @@
 import React, { useMemo, useState, useCallback } from "react";
 import { Helmet } from "react-helmet-async";
-import { Routes, Route, Link } from "react-router-dom";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { useToast } from "@/components/ui/use-toast";
-import { Heart, Target, Users, Lightbulb, Laptop as NotebookPen, Trophy } from 'lucide-react';
 import { BADGE_DEFINITIONS, EXERCISES } from '@/lib/constants';
 
 import { Header } from '@/components/Header';
+import { Navigation } from '@/components/Navigation';
 import { BuilderTab } from '@/components/BuilderTab';
 import { EmotionsTab } from '@/components/EmotionsTab';
 import { RolePlayTab } from '@/components/RolePlayTab';
@@ -261,63 +260,46 @@ const MainApp = () => {
     toast({ title: "New Exercise! 🎯", description: "Try this communication technique." });
   };
 
+  const propsBuilder = {
+    feeling, setFeeling, situation, setSituation, because, setBecause, request, setRequest,
+    firmness, setFirmness, generateAll, statement, prompt1, prompt2, prompt3,
+    aiResponse1, aiResponse2, aiResponse3, isLoading, error, saveStatement,
+    exportSession, impactPreview
+  };
+
+  const propsEmotions = { pickedEmotions, toggleEmotion, pickedNeeds, toggleNeed, insecurityNotes, setInsecurityNotes, affirmation };
+
+  const propsRoleplay = {
+    roleplayStyle, setRoleplayStyle, simulatePartner, stopRoleplay, partnerReply, isPlaying,
+    couplesMode, setCouplesMode, partnerFeeling, setPartnerFeeling, partnerSituation,
+    setPartnerSituation, partnerBecause, setPartnerBecause, partnerRequest, setPartnerRequest, mergedCouplesView
+  };
+
+  const propsExercises = { currentExercise, nextExercise, handleCheckin, checkin, tip };
+  const propsJournal = { journalEntry, setJournalEntry, addJournalEntry, journal };
+  const propsHistory = { insights, history };
+
   return (
     <div className="min-h-screen p-4 space-y-6">
       <Header logoSrc="https://horizons-cdn.hostinger.com/072b7eea-05b1-4460-9b36-68b9a8e786c7/1afbcf7cdc983bde44c229eaafbd4b60.png" badges={badges} />
-      <Tabs defaultValue="builder" className="w-full max-w-6xl mx-auto">
-        <TabsList className="grid w-full grid-cols-7 bg-card">
-          <TabsTrigger value="builder" className="text-foreground"><Target className="w-4 h-4 mr-2" />Builder</TabsTrigger>
-          <TabsTrigger value="emotions" className="text-foreground"><Heart className="w-4 h-4 mr-2" />Emotions</TabsTrigger>
-          <TabsTrigger value="roleplay" className="text-foreground"><Users className="w-4 h-4 mr-2" />Role-Play</TabsTrigger>
-          <TabsTrigger value="couples" asChild><Link to="/couples" className="text-foreground"><Users className="w-4 h-4 mr-2" />Couples</Link></TabsTrigger>
-          <TabsTrigger value="exercises" className="text-foreground"><Lightbulb className="w-4 h-4 mr-2" />Exercises</TabsTrigger>
-          <TabsTrigger value="journal" className="text-foreground"><NotebookPen className="w-4 h-4 mr-2" />Journal</TabsTrigger>
-          <TabsTrigger value="history" className="text-foreground"><Trophy className="w-4 h-4 mr-2" />History</TabsTrigger>
-        </TabsList>
-        <TabsContent value="builder" className="space-y-6">
-          <BuilderTab {...{
-            feeling, setFeeling,
-            situation, setSituation,
-            because, setBecause,
-            request, setRequest,
-            firmness, setFirmness,
-            generateAll,
-            statement,
-            prompt1, prompt2, prompt3,
-            aiResponse1, aiResponse2, aiResponse3,
-            isLoading,
-            error,
-            saveStatement,
-            exportSession,
-            impactPreview
-          }} />
-        </TabsContent>
-        <TabsContent value="emotions" className="space-y-6">
-          <EmotionsTab {...{ pickedEmotions, toggleEmotion, pickedNeeds, toggleNeed, insecurityNotes, setInsecurityNotes, affirmation }} />
-        </TabsContent>
-        <TabsContent value="roleplay" className="space-y-6">
-          <RolePlayTab {...{ roleplayStyle, setRoleplayStyle, simulatePartner, stopRoleplay, partnerReply, isPlaying, couplesMode, setCouplesMode, partnerFeeling, setPartnerFeeling, partnerSituation, setPartnerSituation, partnerBecause, setPartnerBecause, partnerRequest, setPartnerRequest, mergedCouplesView }} />
-        </TabsContent>
-        <TabsContent value="couples" className="space-y-6">
-          <CouplesTexting />
-        </TabsContent>
-        <TabsContent value="exercises" className="space-y-6">
-          <ExercisesTab {...{ currentExercise, nextExercise, handleCheckin, checkin, tip }} />
-        </TabsContent>
-        <TabsContent value="journal" className="space-y-6">
-          <JournalTab {...{ journalEntry, setJournalEntry, addJournalEntry, journal }} />
-        </TabsContent>
-        <TabsContent value="history" className="space-y-6">
-          <HistoryTab {...{ insights, history }} />
-        </TabsContent>
-      </Tabs>
+      <Navigation />
+      <div className="w-full max-w-6xl mx-auto space-y-6">
+        <Routes>
+          <Route path="/" element={<BuilderTab {...propsBuilder} />} />
+          <Route path="/emotions" element={<EmotionsTab {...propsEmotions} />} />
+          <Route path="/roleplay" element={<RolePlayTab {...propsRoleplay} />} />
+          <Route path="/exercises" element={<ExercisesTab {...propsExercises} />} />
+          <Route path="/journal" element={<JournalTab {...propsJournal} />} />
+          <Route path="/history" element={<HistoryTab {...propsHistory} />} />
+        </Routes>
+      </div>
     </div>
   )
 };
 
 export default function App() {
   return (
-    <div className="min-h-screen p-4 space-y-6">
+    <>
       <Helmet>
         <title>I-Statement Builder - Transform Your Communication</title>
         <meta name="description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
@@ -326,10 +308,10 @@ export default function App() {
       </Helmet>
       <Toaster />
       <Routes>
-        <Route path="/" element={<MainApp />} />
+        <Route path="/*" element={<MainApp />} />
         <Route path="/couples/:sessionId" element={<CouplesTexting />} />
         <Route path="/couples" element={<CouplesTexting />} />
       </Routes>
-    </div>
+    </>
   );
 }
