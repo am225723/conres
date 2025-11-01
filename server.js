@@ -1,8 +1,11 @@
 import express from 'express';
 import cors from 'cors';
+import multer from 'multer';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import fetch from 'node-fetch';
+
+const upload = multer({ storage: multer.memoryStorage() });
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -190,6 +193,48 @@ Respond with ONLY the I-Statement, no additional explanation.`;
   } catch (error) {
     console.error('Error calling Perplexity API:', error);
     res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+// Voice transcription endpoint
+app.post('/api/transcribe-voice', upload.single('audio'), async (req, res) => {
+  const { PPLX_API_KEY } = process.env;
+
+  if (!PPLX_API_KEY) {
+    return res.status(500).json({ error: 'Perplexity API key is not configured.' });
+  }
+
+  if (!req.file) {
+    return res.status(400).json({ error: 'No audio file provided' });
+  }
+
+  try {
+    // NOTE: This is a placeholder implementation
+    // In production, integrate with OpenAI Whisper or similar speech-to-text service
+    // For now, we simulate transcription with varied responses
+    
+    const sampleTranscriptions = [
+      { text: "Hey, I wanted to talk to you about something that's been on my mind.", tone: "calm" },
+      { text: "I feel frustrated when plans change at the last minute.", tone: "assertive" },
+      { text: "I really appreciate you listening to me. Thank you.", tone: "empathetic" },
+      { text: "Can we talk about this later? I need some time to think.", tone: "anxious" },
+      { text: "I love spending time with you. Let's do this more often!", tone: "compassionate" },
+    ];
+    
+    // Use file size or timestamp to pick a sample
+    const index = req.file.size % sampleTranscriptions.length;
+    const sample = sampleTranscriptions[index];
+    
+    console.log(`Voice message received (${req.file.size} bytes) - Simulated transcription`);
+    
+    res.status(200).json({ 
+      transcription: sample.text,
+      tone: sample.tone,
+      note: "Using simulated transcription. Integrate OpenAI Whisper API for production."
+    });
+  } catch (error) {
+    console.error('Error transcribing voice:', error);
+    res.status(500).json({ error: 'Failed to transcribe voice message' });
   }
 });
 

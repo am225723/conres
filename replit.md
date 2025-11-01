@@ -15,13 +15,17 @@ A sophisticated real-time messaging platform for couples with AI-powered insight
 - Backend API runs on port 3001 (Express server)
 - Vite proxies `/api/*` requests to the backend
 
-## Recent Changes (Nov 1, 2025 - Major Enhancement)
-- **Real-time Tone Analysis**: Implemented AI-powered tone detection as users type with 17 different emotional tones
-- **I-Statement Generation**: Added AI modal that intercepts messages and offers constructive I-Statement alternatives
+## Recent Changes (Nov 1, 2025 - Latest Updates)
+- **Conversation Health Dashboard**: Analytics dashboard showing relationship health scores, tone distributions, conflict patterns, and time-based insights
+- **Cool-Down Timer**: Automatic detection of hostile conversations with guided break suggestions and breathing exercises
+- **Voice Message Support**: Record and send voice messages with AI transcription and tone analysis
+- **Full URL Routing**: All pages now have shareable URLs for easy link sharing
+- **Real-time Tone Analysis**: AI-powered tone detection as users type with 17 different emotional tones
+- **I-Statement Generation**: AI modal that intercepts messages and offers constructive I-Statement alternatives
 - **Dynamic Color System**: Chat background and input box change colors based on detected message tone
-- **Modern Chat UI**: Completely redesigned chat interface with glass-morphism, animations, and mobile-first design
-- **Enhanced API**: Added `/api/analyze-tone` and `/api/generate-i-statement` endpoints using Perplexity AI
-- **Fallback Systems**: Local tone analysis when API is unavailable, ensuring features always work
+- **Modern Chat UI**: Redesigned chat interface with glass-morphism, animations, and mobile-first design
+- **Enhanced API**: Added `/api/analyze-tone`, `/api/generate-i-statement`, and `/api/transcribe-voice` endpoints
+- **Fallback Systems**: Local tone analysis when API is unavailable
 
 ## Previous Changes (Oct 28, 2025 - Initial Setup)
 - Configured frontend to run on port 5000 (Replit requirement)
@@ -40,6 +44,26 @@ Located in `.env` file:
 - `SUPABASE_ANON_KEY` - Backend Supabase key
 
 ## Key Features
+
+### Analytics Dashboard (NEW!)
+- **Health Score**: Overall relationship communication health (0-100)
+- **Weekly Progress**: Track improvement trends over time
+- **Tone Distribution**: Visual breakdown of emotional tones used
+- **Conflict Detection**: Identifies escalation patterns automatically
+- **Time Insights**: Peak communication times and conflict patterns
+- **Personalized Recommendations**: AI-driven suggestions for improvement
+
+### Cool-Down Timer (NEW!)
+- **Automatic Trigger**: Detects when 2+ hostile messages occur in sequence
+- **Break Suggestions**: Guided cooldown with breathing exercises
+- **Quick Messages**: Send "I need space" with one click
+- **Timer Display**: 5-minute countdown for recommended break time
+
+### Voice Messages (NEW!)
+- **Browser Recording**: Built-in MediaRecorder API integration
+- **Tone Analysis**: Voice messages analyzed for emotional tone
+- **Simulated Transcription**: Demo implementation (production requires Whisper API)
+- Note: Full speech-to-text requires OpenAI Whisper or similar service integration
 
 ### Couples Texting Module
 - **Real-time Tone Analysis**: As users type, AI analyzes tone and changes input box color

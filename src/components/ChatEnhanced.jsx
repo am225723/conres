@@ -10,6 +10,8 @@ import {
 } from '../lib/supabase';
 import { getToneColor, analyzeToneLocally, debounce } from '../lib/toneAnalysis';
 import IStatementModal from './IStatementModal';
+import { CoolDownTimer } from './CoolDownTimer';
+import { VoiceRecorder } from './VoiceRecorder';
 
 const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
     // State management
@@ -30,6 +32,9 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
     const [generatedIStatement, setGeneratedIStatement] = useState('');
     const [isGeneratingIStatement, setIsGeneratingIStatement] = useState(false);
     const [pendingMessage, setPendingMessage] = useState('');
+    
+    // Cool-down timer state
+    const [showCoolDown, setShowCoolDown] = useState(false);
     
     const messagesEndRef = useRef(null);
     const channelRef = useRef(null);
@@ -258,6 +263,21 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
         await generateIStatement(message);
     };
 
+    // Cool-down handlers
+    const handleCoolDownDismiss = () => {
+        setShowCoolDown(false);
+    };
+
+    const handleSendSpaceMessage = async () => {
+        setShowCoolDown(false);
+        await sendMessageWithTone("I need some space right now. Let's take a break and come back to this when we're both calmer. 💙", 'calm');
+    };
+
+    // Voice message handler
+    const handleVoiceMessage = async (transcription, tone) => {
+        await sendMessageWithTone(transcription, tone);
+    };
+
     // Actually send the message with tone analysis
     const sendMessageWithTone = async (messageText, tone) => {
         setIsSending(true);
@@ -284,6 +304,19 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
                 // Update background color
                 const bgColor = getToneColor(tone || currentTone);
                 setChatBackgroundColor(bgColor);
+
+                // Check for cool-down trigger (hostile tones)
+                const hostileTones = ['confrontational', 'aggressive', 'hostile'];
+                if (hostileTones.includes(tone || currentTone)) {
+                    const recentMessages = [...messages, result.message].slice(-5);
+                    const hostileCount = recentMessages.filter(m => 
+                        hostileTones.includes(m.tone_analysis?.tone)
+                    ).length;
+                    
+                    if (hostileCount >= 2) {
+                        setShowCoolDown(true);
+                    }
+                }
 
                 setMessage('');
                 setInputBoxColor('#FFFFFF');
@@ -368,6 +401,12 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
     return (
         <>
             {/* I-Statement Modal */}
+            <CoolDownTimer
+                isActive={showCoolDown}
+                onDismiss={handleCoolDownDismiss}
+                onSendSpaceMessage={handleSendSpaceMessage}
+            />
+            
             <IStatementModal
                 isOpen={showIStatementModal}
                 onClose={handleCloseModal}
@@ -502,17 +541,23 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
                                 disabled={isSending}
                             />
                         </div>
-                        <button
-                            onClick={handleSendClick}
-                            disabled={!message.trim() || isSending}
-                            className="p-4 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-medium transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg hover:shadow-xl"
-                        >
-                            {isSending ? (
-                                <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            ) : (
-                                <Send className="w-6 h-6" />
-                            )}
-                        </button>
+                        <div className="flex gap-2">
+                            <VoiceRecorder 
+                                onSendVoiceMessage={handleVoiceMessage}
+                                disabled={isSending}
+                            />
+                            <button
+                                onClick={handleSendClick}
+                                disabled={!message.trim() || isSending}
+                                className="p-4 rounded-xl bg-gradient-to-r from-primary to-secondary text-white font-medium transition-all hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 shadow-lg hover:shadow-xl"
+                            >
+                                {isSending ? (
+                                    <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <Send className="w-6 h-6" />
+                                )}
+                            </button>
+                        </div>
                     </div>
                     <p className="text-xs text-muted-foreground mt-2 text-center">
                         Press Enter to send • Shift+Enter for new line

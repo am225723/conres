@@ -29,6 +29,7 @@
     "express": "^5.1.0",
     "framer-motion": "^10.16.4",
     "lucide-react": "^0.285.0",
+    "multer": "^2.0.2",
     "nanoid": "^5.1.6",
     "node-fetch": "^2.7.0",
     "pusher": "^5.2.0",
