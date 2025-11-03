@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { nanoid } from 'nanoid';
+import { useParams } from 'react-router-dom';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { 
@@ -11,6 +12,7 @@ import {
 import ChatEnhanced from './ChatEnhanced';
 
 const CouplesTexting = ({ firmness }) => {
+  const { sessionId } = useParams();
   const [session, setSession] = useState(null);
   const [sessionCode, setSessionCode] = useState('');
   const [userId, setUserId] = useState('');
@@ -33,14 +35,48 @@ const CouplesTexting = ({ firmness }) => {
       setNickname(storedNickname);
     }
 
-    // Check for session code in URL
-    const urlParams = new URLSearchParams(window.location.search);
-    const sessionFromUrl = urlParams.get('session');
-    if (sessionFromUrl) {
-      setSessionCode(sessionFromUrl);
-      toast.info(`Joining session ${sessionFromUrl}...`);
+    // Check for session code in URL path parameter
+    if (sessionId) {
+      setSessionCode(sessionId);
+      toast.info(`Ready to join session ${sessionId}`);
     }
-  }, []);
+  }, [sessionId]);
+
+  // Auto-join when coming from a shareable link with stored nickname
+  useEffect(() => {
+    const autoJoin = async () => {
+      if (sessionId && nickname && userId && !session && !isLoading) {
+        setIsLoading(true);
+        try {
+          const result = await joinSession(
+            sessionId.toUpperCase(), 
+            userId, 
+            nickname
+          );
+          
+          if (result.success) {
+            setSession(result.session);
+            localStorage.setItem('nickname', nickname);
+            
+            if (result.isRejoining) {
+              toast.success('Rejoined session successfully!');
+            } else {
+              toast.success('Joined session successfully!');
+            }
+          } else {
+            toast.error(`Failed to join session: ${result.error}`);
+          }
+        } catch (error) {
+          console.error('Error joining session:', error);
+          toast.error('Could not join the session.');
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+
+    autoJoin();
+  }, [sessionId, nickname, userId, session, isLoading]);
 
   const handleCreateSession = async () => {
     if (!nickname.trim()) {
@@ -208,9 +244,9 @@ const CouplesTexting = ({ firmness }) => {
               type="text"
               value={sessionCode}
               onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
-              placeholder="Enter 8-character code"
+              placeholder="Enter 6-digit code"
               className="flex-grow bg-input border border-border text-foreground placeholder:text-muted-foreground p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary uppercase"
-              maxLength={8}
+              maxLength={6}
             />
             <button
               onClick={handleJoinSession}
