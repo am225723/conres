@@ -43,6 +43,19 @@ Located in `.env` file:
 - `SUPABASE_URL` - Backend Supabase URL
 - `SUPABASE_ANON_KEY` - Backend Supabase key
 
+## Shareable Session Links
+
+The Couples Texting feature now supports direct shareable links:
+
+- **Format**: `https://your-app.replit.dev/couples/SESSION_CODE`
+- **How to Share**:
+  1. Create a new session by entering your nickname and clicking "Create New Session"
+  2. The shareable link is **automatically copied to your clipboard**
+  3. Share this link with your partner via text, email, or any messaging app
+  4. Your partner can click the link to join directly (or enter the session code manually)
+- **Copy Link Button**: Click the "Invite Partner" button in any active chat to re-copy the link
+- **No More 404 Errors**: Refreshing the page now works correctly on all routes
+
 ## Key Features
 
 ### Analytics Dashboard (NEW!)

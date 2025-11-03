@@ -361,9 +361,10 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
 
     // Invite partner
     const handleInvitePartner = () => {
-        const inviteLink = `${window.location.origin}${window.location.pathname}?session=${session.session_code}`;
+        // Create a direct link to this session using the session code
+        const inviteLink = `${window.location.origin}/couples/${session.session_code}`;
         navigator.clipboard.writeText(inviteLink).then(() => {
-            toast.success('Invite link copied!');
+            toast.success('🔗 Invite link copied to clipboard!');
         }).catch(() => {
             toast.error('Could not copy link');
         });

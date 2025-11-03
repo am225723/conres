@@ -65,7 +65,14 @@ const CouplesTexting = ({ firmness }) => {
           setSession(joinResult.session);
           setSessionCode(result.session.session_code);
           localStorage.setItem('nickname', nickname);
-          toast.success(`Session created! Code: ${result.session.session_code}`);
+          
+          // Copy the shareable link automatically
+          const shareableLink = `${window.location.origin}/couples/${result.session.session_code}`;
+          navigator.clipboard.writeText(shareableLink).then(() => {
+            toast.success(`Session created! Link copied to clipboard: ${result.session.session_code}`);
+          }).catch(() => {
+            toast.success(`Session created! Code: ${result.session.session_code}`);
+          });
         } else {
           toast.error('Failed to join the created session');
         }
