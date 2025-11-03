@@ -22,17 +22,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 1. Get user IDs from the request body
-    const { user1_id, user2_id } = req.body;
-
-    if (!user1_id || !user2_id) {
-      return res.status(400).json({ error: 'Missing required fields: user1_id, user2_id' });
-    }
-
-    // 2. Generate the required session_code
+    // 1. Generate the required session_code
     const newSessionCode = generateSessionCode();
 
-    // 3. Initialize Supabase client
+    // 2. Initialize Supabase client
     // Using the anon key for demo purposes
     // In production, use a service role key for server-side operations
     const supabase = createClient(
@@ -40,15 +33,13 @@ export default async function handler(req, res) {
       process.env.SUPABASE_ANON_KEY
     );
 
-    // 4. Create the session in the database
-    const { data, error } = await supabase
+    // 3. Create the session in the database
+    // Only insert the session_code, let other columns use defaults or be set later
+    const { data, error} = await supabase
       .from('sessions')
-      .insert({
-        user1_id: user1_id,
-        user2_id: user2_id,
-        session_code: newSessionCode, // <-- The fix is here
-        created_at: new Date().toISOString()
-      })
+      .insert([{
+        session_code: newSessionCode
+      }])
       .select()
       .single();
 

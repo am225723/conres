@@ -12,20 +12,13 @@ const CouplesTexting = () => {
   const createSession = async () => {
     setIsCreating(true);
     try {
-      // Generate unique user IDs for the session
-      const user1_id = `user_${Math.random().toString(36).substring(2, 15)}`;
-      const user2_id = `user_${Math.random().toString(36).substring(2, 15)}`;
-      
       // Call the backend API to create a unique session ID
       const response = await fetch('/api/create-session', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          user1_id,
-          user2_id
-        })
+        body: JSON.stringify({})
       });
 
       if (!response.ok) {
