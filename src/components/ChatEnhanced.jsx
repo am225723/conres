@@ -8,7 +8,8 @@ import {
     leaveSession,
     supabase
 } from '../lib/supabase';
-import { getToneColor, analyzeToneLocally, debounce } from '../lib/toneAnalysis';
+import { getToneColor, debounce } from '../lib/toneAnalysis';
+import { analyzeTone, generateIStatement, transcribeVoice } from '../lib/aiService';
 import IStatementModal from './IStatementModal';
 import { CoolDownTimer } from './CoolDownTimer';
 import { VoiceRecorder } from './VoiceRecorder';
@@ -191,32 +192,13 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
             }
 
             try {
-                // Try API analysis first
-                const response = await fetch('/api/analyze-tone', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ text })
-                });
-
-                let tone = 'calm';
-                if (response.ok) {
-                    const data = await response.json();
-                    tone = data.tone || 'calm';
-                } else {
-                    // Fallback to local analysis
-                    const localAnalysis = analyzeToneLocally(text);
-                    tone = localAnalysis.tone;
-                }
-
-                setCurrentTone(tone);
-                setInputBoxColor(getToneColor(tone));
+                const result = await analyzeTone(text);
+                setCurrentTone(result.tone);
+                setInputBoxColor(getToneColor(result.tone));
             } catch (error) {
                 console.error('Tone analysis error:', error);
-                toast.error('AI tone analysis unavailable, using local analysis');
-                // Use local fallback
-                const localAnalysis = analyzeToneLocally(text);
-                setCurrentTone(localAnalysis.tone);
-                setInputBoxColor(getToneColor(localAnalysis.tone));
+                setCurrentTone('calm');
+                setInputBoxColor('#FFFFFF');
             }
         }, 500),
         []
@@ -230,25 +212,15 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
     };
 
     // Generate I-Statement
-    const generateIStatement = async (text) => {
+    const handleGenerateIStatement = async (text) => {
         setIsGeneratingIStatement(true);
         try {
-            const response = await fetch('/api/generate-i-statement', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setGeneratedIStatement(data.iStatement);
-            } else {
-                throw new Error('Failed to generate I-Statement');
-            }
+            const iStatement = await generateIStatement(text);
+            setGeneratedIStatement(iStatement);
         } catch (error) {
             console.error('I-Statement generation error:', error);
             toast.error('Could not generate I-Statement. Using your original message instead.');
-            setGeneratedIStatement(text); // Fallback to original
+            setGeneratedIStatement(text);
         } finally {
             setIsGeneratingIStatement(false);
         }
@@ -260,7 +232,7 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
 
         setPendingMessage(message);
         setShowIStatementModal(true);
-        await generateIStatement(message);
+        await handleGenerateIStatement(message);
     };
 
     // Cool-down handlers

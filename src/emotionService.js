@@ -41,18 +41,8 @@ Please respond with a JSON object containing:
 
 Format your response as valid JSON only, no additional text.`;
 
-    const response = await fetch('/api/perplexity', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ prompt }),
-    });
-
-    if (!response.ok) {
-      throw new Error(`AI analysis failed: ${response.status}`);
-    }
-
-    const result = await response.json();
-    const content = result.choices[0].message.content;
+    const { callAI } = await import('./lib/aiService');
+    const content = await callAI(prompt, "You are an emotion analysis expert. Respond with valid JSON only.");
 
     // Robust JSON parsing
     let emotionData;

@@ -16,42 +16,30 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   }
 });
 
-// Helper function to generate session code
+// Helper function to generate 6-digit session code
 export const generateSessionCode = () => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 6; i++) {
     code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return code;
 };
 
-// Helper function to create a new session
-export const createSession = async (user1Id = 'user1', user2Id = 'user2') => {
+// Helper function to create a new session - Direct Supabase call
+export const createSession = async () => {
   try {
-    const response = await fetch('/api/create-session', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        user1_id: user1Id,
-        user2_id: user2Id
-      })
-    });
+    const sessionCode = generateSessionCode();
+    
+    const { data, error } = await supabase
+      .from('sessions')
+      .insert([{ session_code: sessionCode }])
+      .select()
+      .single();
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      throw new Error(errorData.error || `HTTP ${response.status}: Failed to create session`);
-    }
+    if (error) throw error;
 
-    const data = await response.json();
-
-    if (data.success) {
-      return { success: true, session: data.session };
-    } else {
-      throw new Error(data.error || 'Unknown error');
-    }
+    return { success: true, session: data };
   } catch (error) {
     console.error('Error creating session:', error);
     return { success: false, error: error.message };

@@ -228,16 +228,9 @@ const ChatFixed = ({ session, firmness, userId, nickname, onLeave }) => {
     const prompt = `Based on the last message "${lastMessage.message_text}", suggest a supportive and constructive reply.`;
 
     try {
-      const response = await fetch('/api/perplexity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const result = await response.json();
-      setMessage(result.choices[0].message.content);
+      const { callAI } = await import('../lib/aiService');
+      const content = await callAI(prompt);
+      setMessage(content);
       toast.success("Suggested reply has been filled in the message box.");
     } catch (e) {
       console.error('Error getting suggested reply:', e);
@@ -254,19 +247,10 @@ const ChatFixed = ({ session, firmness, userId, nickname, onLeave }) => {
     }
 
     setIsAiHelping(true);
-    const prompt = `Reword the following message as an I-statement: "${message}"`;
-
     try {
-      const response = await fetch('/api/perplexity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const result = await response.json();
-      setMessage(result.choices[0].message.content);
+      const { generateIStatement } = await import('../lib/aiService');
+      const iStatement = await generateIStatement(message);
+      setMessage(iStatement);
       toast.success("Message has been reworded as an I-statement.");
     } catch (e) {
       console.error('Error rewording message:', e);

@@ -245,13 +245,7 @@ export default defineConfig({
                         'Cross-Origin-Embedder-Policy': 'credentialless',
                 },
                 allowedHosts: true,
-                proxy: {
-                        '/api': {
-                                target: 'http://localhost:3001',
-                                changeOrigin: true,
-                        },
-                },
-                historyApiFallback: true, // Fix 404 on refresh for SPA routing
+                historyApiFallback: true,
         },
         resolve: {
                 extensions: ['.jsx', '.js', '.tsx', '.ts', '.json', ],

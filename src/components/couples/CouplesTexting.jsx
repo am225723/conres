@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import CouplesSession from './CouplesSession';
 import { useToast } from '@/components/ui/use-toast';
+import { createSession as createSupabaseSession } from '@/lib/supabase';
 
 const CouplesTexting = () => {
   const { sessionId } = useParams();
@@ -12,27 +13,18 @@ const CouplesTexting = () => {
   const createSession = async () => {
     setIsCreating(true);
     try {
-      // Call the backend API to create a unique session ID
-      const response = await fetch('/api/create-session', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({})
-      });
+      const result = await createSupabaseSession();
 
-      if (!response.ok) {
-        throw new Error(`Failed to create session: ${response.status}`);
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to create session');
       }
 
-      const data = await response.json();
-      const newSessionId = data.session?.session_code || data.sessionId;
+      const newSessionId = result.session?.session_code;
 
-      // Navigate to the new session
       navigate(`/couples/${newSessionId}`);
       
       toast({
-        title: "Session Created! 💬",
+        title: "Session Created!",
         description: "Share this URL with your partner to start chatting.",
       });
     } catch (error) {

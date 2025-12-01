@@ -164,18 +164,8 @@ const Chat = ({ currentUser, otherUser, sessionId }) => {
     }
 
     try {
-      const response = await fetch('/api/perplexity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `Generate 3 alternative ways to say "${message}" in a ${tone} tone. Provide only the alternatives, one per line.`,
-        }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const data = await response.json();
-      const content = data.choices[0].message.content;
+      const { callAI } = await import('../../lib/aiService');
+      const content = await callAI(`Generate 3 alternative ways to say "${message}" in a ${tone} tone. Provide only the alternatives, one per line.`);
       const suggestionsList = content.split('\n').filter(s => s.trim()).slice(0, 3);
       
       setSuggestions(suggestionsList);
@@ -194,19 +184,9 @@ const Chat = ({ currentUser, otherUser, sessionId }) => {
 
     setRewording(true);
     try {
-      const response = await fetch('/api/perplexity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          prompt: `Reword the following message in a ${tone} tone: "${message}". Provide only the reworded message.`,
-        }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-      
-      const data = await response.json();
-      const rewordedMessage = data.choices[0].message.content.trim();
-      setMessage(rewordedMessage);
+      const { callAI } = await import('../../lib/aiService');
+      const rewordedMessage = await callAI(`Reword the following message in a ${tone} tone: "${message}". Provide only the reworded message.`);
+      setMessage(rewordedMessage.trim());
       toast.success('Message reworded!');
     } catch (error) {
       console.error('Error rewording message:', error);

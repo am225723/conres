@@ -108,26 +108,14 @@ const MainApp = () => {
 
   const generateAICompletions = async (prompt, setter) => {
     try {
-      const response = await fetch('/api/perplexity', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
-      }
-
-      const result = await response.json();
-      setter(result.choices[0].message.content);
+      const { callAI } = await import('./lib/aiService');
+      const content = await callAI(prompt);
+      setter(content);
     } catch (e) {
       console.error(e);
       setError(e.message);
       toast({ title: "Error Generating Response", description: e.message, variant: "destructive" });
-      throw e; // re-throw to be caught by generateAll
+      throw e;
     }
   };
 

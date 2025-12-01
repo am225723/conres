@@ -1,47 +1,52 @@
 # Couple's Messaging Platform - Replit Configuration
 
 ## Project Overview
-A sophisticated real-time messaging platform for couples with AI-powered insights, emotion tracking, and sentiment analysis.
+A sophisticated real-time messaging platform for couples with AI-powered insights, emotion tracking, and sentiment analysis. Mobile web app ready with Supabase-only architecture.
 
 ## Technology Stack
 - **Frontend**: React 18 + Vite + Tailwind CSS
-- **Backend**: Express.js (Node.js)
-- **Database**: Supabase (PostgreSQL with real-time)
-- **AI**: Perplexity AI for emotion analysis
+- **Backend**: Supabase (PostgreSQL with real-time) - No Express server
+- **Database**: Supabase (PostgreSQL with real-time subscriptions)
+- **AI**: Local keyword-based analysis with optional Supabase Edge Function support
 - **Build Tool**: Vite
 
 ## Architecture
+- Frontend-only architecture (no Express backend)
 - Frontend runs on port 5000 (Vite dev server)
-- Backend API runs on port 3001 (Express server)
-- Vite proxies `/api/*` requests to the backend
+- All data operations use Supabase client directly
+- AI functions use local analysis with fallbacks
+- Real-time messaging via Supabase realtime subscriptions
 
-## Recent Changes (Nov 1, 2025 - Latest Updates)
-- **Conversation Health Dashboard**: Analytics dashboard showing relationship health scores, tone distributions, conflict patterns, and time-based insights
-- **Cool-Down Timer**: Automatic detection of hostile conversations with guided break suggestions and breathing exercises
-- **Voice Message Support**: Record and send voice messages with AI transcription and tone analysis
-- **Full URL Routing**: All pages now have shareable URLs for easy link sharing
-- **Real-time Tone Analysis**: AI-powered tone detection as users type with 17 different emotional tones
-- **I-Statement Generation**: AI modal that intercepts messages and offers constructive I-Statement alternatives
-- **Dynamic Color System**: Chat background and input box change colors based on detected message tone
-- **Modern Chat UI**: Redesigned chat interface with glass-morphism, animations, and mobile-first design
-- **Enhanced API**: Added `/api/analyze-tone`, `/api/generate-i-statement`, and `/api/transcribe-voice` endpoints
-- **Fallback Systems**: Local tone analysis when API is unavailable
+## Recent Changes (Dec 1, 2025 - Supabase Migration)
+- **MAJOR: Removed Express Backend**: Complete migration to Supabase-only architecture
+- **AI Service Refactor**: Created src/lib/aiService.js with LOCAL-ONLY implementations (no external API calls for security)
+  - `analyzeTone()` - Keyword-based tone analysis
+  - `generateIStatement()` - Rule-based I-Statement generation  
+  - `transcribeVoice()` - Simulated transcription (placeholder for future API)
+  - `callAI()` - Local response generation with pattern matching
+- **Security Fix**: Removed all external API calls from client to prevent key exposure
+- **Direct Supabase Calls**: All session/message operations use Supabase client
+- **Removed Proxy**: Vite config no longer proxies to backend server
+- **Removed Dependencies**: Express, cors, dotenv, multer, node-fetch, pusher removed
+- **Session Codes**: Changed from 8-character to 6-digit format for easier sharing
+- **Mobile Ready**: Architecture optimized for mobile web app deployment
 
-## Previous Changes (Oct 28, 2025 - Initial Setup)
-- Configured frontend to run on port 5000 (Replit requirement)
-- Set up dual workflow system (frontend + backend)
-- Updated vite.config.js to allow all hosts for iframe proxy support
-- Confirmed Supabase credentials are in .env file
-- Backend configured to run on localhost:3001
-- Replaced react-helmet with react-helmet-async to fix React warnings
+## Previous Updates (Nov 1, 2025)
+- Conversation Health Dashboard with analytics
+- Cool-Down Timer for hostile conversation detection
+- Voice Message Support with tone analysis
+- Full URL Routing for shareable links
+- Real-time Tone Analysis with 17 emotional tones
+- I-Statement Generation modal
+- Dynamic Color System based on message tone
 
 ## Environment Variables
-Located in `.env` file:
-- `VITE_SUPABASE_URL` - Supabase project URL
+Located in Replit Secrets (override .env file):
+- `VITE_SUPABASE_URL` - Supabase project URL (efgtznvrnzqcxmfmjuue.supabase.co)
 - `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
-- `PPLX_API_KEY` - Perplexity AI API key
-- `SUPABASE_URL` - Backend Supabase URL
-- `SUPABASE_ANON_KEY` - Backend Supabase key
+- `PPLX_API_KEY` - Perplexity AI API key (optional, for enhanced AI)
+
+**Note**: Replit Secrets take precedence over .env file values
 
 ## Shareable Session Links
 
@@ -85,7 +90,7 @@ The Couples Texting feature now supports direct shareable links:
 - **Dynamic Background Colors**: Chat background changes based on message tone, visible to both users
 - **Modern Message Bubbles**: Glass-morphism design with animations and mobile-optimized layout
 - **Smart Fallbacks**: Local tone analysis when API unavailable, polling when realtime fails
-- **Session Management**: Unique 8-character codes for private, secure conversations
+- **Session Management**: Unique 6-digit codes for private, secure conversations
 
 ### I-Statement Builder
 - AI-powered emotion detection (11 emotion categories)
@@ -94,10 +99,10 @@ The Couples Texting feature now supports direct shareable links:
 - Dynamic UI with emotion-based colors
 
 ## Development Workflow
-1. Backend server starts automatically (node server.js on port 3001)
-2. Frontend dev server runs (npm run dev on port 5000)
-3. User accesses application through port 5000
-4. API calls are proxied from frontend to backend
+1. Frontend dev server runs (npm run dev on port 5000)
+2. User accesses application through port 5000
+3. All data operations use Supabase client directly (no backend proxy)
+4. Real-time updates via Supabase subscriptions
 
 ## User Preferences
 - No specific preferences recorded yet

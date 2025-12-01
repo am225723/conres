@@ -38,17 +38,8 @@ const AiModal = ({
     const prompt = `Continuing the conversation based on this new message: "${userInput}". The previous context is: ${JSON.stringify(conversation)}. Provide a helpful response.`;
 
     try {
-      const response = await fetch('/api/perplexity', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt }),
-      });
-
-      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-
-      const result = await response.json();
-      const aiResponse = result.choices[0].message.content;
-
+      const { callAI } = await import('../lib/aiService');
+      const aiResponse = await callAI(prompt);
       setConversation([...newConversation, { author: 'ai', text: aiResponse }]);
     } catch (err) {
       console.error('Error with AI assistant:', err);

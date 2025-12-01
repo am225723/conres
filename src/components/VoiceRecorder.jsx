@@ -46,19 +46,8 @@ export const VoiceRecorder = ({ onSendVoiceMessage, disabled }) => {
   const processVoiceMessage = async (audioBlob) => {
     setIsProcessing(true);
     try {
-      const formData = new FormData();
-      formData.append('audio', audioBlob, 'voice-message.webm');
-
-      const response = await fetch('/api/transcribe-voice', {
-        method: 'POST',
-        body: formData,
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to transcribe voice message');
-      }
-
-      const data = await response.json();
+      const { transcribeVoice } = await import('../lib/aiService');
+      const data = await transcribeVoice(audioBlob);
       
       if (data.transcription && onSendVoiceMessage) {
         onSendVoiceMessage(data.transcription, data.tone);
