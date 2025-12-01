@@ -19,12 +19,12 @@ A sophisticated real-time messaging platform for couples with AI-powered insight
 
 ## Recent Changes (Dec 1, 2025 - Supabase Migration)
 - **MAJOR: Removed Express Backend**: Complete migration to Supabase-only architecture
-- **AI Service Refactor**: Created src/lib/aiService.js with LOCAL-ONLY implementations (no external API calls for security)
-  - `analyzeTone()` - Keyword-based tone analysis
-  - `generateIStatement()` - Rule-based I-Statement generation  
-  - `transcribeVoice()` - Simulated transcription (placeholder for future API)
-  - `callAI()` - Local response generation with pattern matching
-- **Security Fix**: Removed all external API calls from client to prevent key exposure
+- **AI Service Refactor**: Created src/lib/aiService.js with Perplexity AI integration
+  - `analyzeTone()` - AI-powered tone analysis with 17 emotional tones
+  - `generateIStatement()` - AI-powered I-Statement generation  
+  - `transcribeVoice()` - Simulated transcription (placeholder for Whisper API)
+  - `callAI()` - General AI function for prompts
+  - Local fallbacks when API unavailable
 - **Direct Supabase Calls**: All session/message operations use Supabase client
 - **Removed Proxy**: Vite config no longer proxies to backend server
 - **Removed Dependencies**: Express, cors, dotenv, multer, node-fetch, pusher removed
@@ -44,7 +44,7 @@ A sophisticated real-time messaging platform for couples with AI-powered insight
 Located in Replit Secrets (override .env file):
 - `VITE_SUPABASE_URL` - Supabase project URL (efgtznvrnzqcxmfmjuue.supabase.co)
 - `VITE_SUPABASE_ANON_KEY` - Supabase anonymous key
-- `PPLX_API_KEY` - Perplexity AI API key (optional, for enhanced AI)
+- `VITE_PPLX_API_KEY` - Perplexity AI API key (for tone analysis and I-statement generation)
 
 **Note**: Replit Secrets take precedence over .env file values
 
