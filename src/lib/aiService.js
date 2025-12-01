@@ -1,11 +1,66 @@
 import { analyzeToneLocally, TONE_COLORS } from './toneAnalysis';
 
+const PPLX_API_KEY = import.meta.env.VITE_PPLX_API_KEY;
+
+const callPerplexityAPI = async (messages, maxTokens = 200, temperature = 0.7) => {
+  if (!PPLX_API_KEY) {
+    throw new Error('Perplexity API key not configured');
+  }
+
+  const response = await fetch("https://api.perplexity.ai/chat/completions", {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${PPLX_API_KEY}`,
+    },
+    body: JSON.stringify({
+      model: "sonar",
+      messages,
+      max_tokens: maxTokens,
+      temperature,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Perplexity API Error: ${response.status}`);
+  }
+
+  return response.json();
+};
+
 export const analyzeTone = async (text) => {
   if (!text || text.trim().length === 0) {
     return { tone: 'calm', confidence: 0.3 };
   }
 
-  return analyzeToneLocally(text);
+  if (!PPLX_API_KEY) {
+    console.log('Using local tone analysis (no API key)');
+    return analyzeToneLocally(text);
+  }
+
+  try {
+    const prompt = `Analyze the emotional tone of this message and respond with ONLY ONE WORD from this list: calm, reassuring, empathetic, compassionate, cooperative, curious, assertive, passive-aggressive, sarcastic, anxious, impatient, dismissive, judgmental, blaming, confrontational, aggressive, hostile.
+
+Message: "${text}"
+
+Respond with only the single most appropriate tone word, nothing else.`;
+
+    const data = await callPerplexityAPI([
+      { role: "system", content: "You are a tone analysis expert. Respond with only one word." },
+      { role: "user", content: prompt },
+    ], 50, 0.3);
+
+    const rawTone = data.choices[0].message.content.trim().toLowerCase();
+    const tone = rawTone.replace(/[^a-z-]/g, '');
+    
+    const validTones = Object.keys(TONE_COLORS);
+    const validatedTone = validTones.includes(tone) ? tone : 'calm';
+    
+    return { tone: validatedTone, confidence: 0.9 };
+  } catch (error) {
+    console.warn('AI tone analysis failed, using local fallback:', error.message);
+    return analyzeToneLocally(text);
+  }
 };
 
 export const generateIStatement = async (text) => {
@@ -13,7 +68,31 @@ export const generateIStatement = async (text) => {
     return text;
   }
 
-  return generateIStatementLocally(text);
+  if (!PPLX_API_KEY) {
+    console.log('Using local I-Statement generation (no API key)');
+    return generateIStatementLocally(text);
+  }
+
+  try {
+    const prompt = `Convert this message into a constructive I-Statement format. Use this structure:
+"I feel [emotion] when [situation] because [impact]. I would like [request]."
+
+Make it empathetic, non-blaming, and focused on expressing feelings and needs constructively.
+
+Original message: "${text}"
+
+Respond with ONLY the I-Statement, no additional explanation.`;
+
+    const data = await callPerplexityAPI([
+      { role: "system", content: "You are an expert communication coach. Convert messages to I-Statements." },
+      { role: "user", content: prompt },
+    ], 200, 0.7);
+
+    return data.choices[0].message.content.trim();
+  } catch (error) {
+    console.warn('AI I-Statement generation failed, using local fallback:', error.message);
+    return generateIStatementLocally(text);
+  }
 };
 
 export const generateIStatementLocally = (text) => {
@@ -82,41 +161,19 @@ export const transcribeVoice = async (audioBlob) => {
 };
 
 export const callAI = async (prompt, systemPrompt = "You are an expert communication coach.") => {
-  const lowerPrompt = prompt.toLowerCase();
-  
-  if (lowerPrompt.includes('i-statement') || lowerPrompt.includes('reword')) {
-    const messageMatch = prompt.match(/"([^"]+)"/);
-    if (messageMatch) {
-      return generateIStatementLocally(messageMatch[1]);
-    }
+  if (!PPLX_API_KEY) {
+    throw new Error('AI features require API key configuration');
   }
-  
-  if (lowerPrompt.includes('suggest') && lowerPrompt.includes('reply')) {
-    return "I hear what you're saying, and I appreciate you sharing that with me. Could you tell me more about how you're feeling?";
+
+  try {
+    const data = await callPerplexityAPI([
+      { role: "system", content: systemPrompt },
+      { role: "user", content: prompt },
+    ], 500, 0.7);
+
+    return data.choices[0].message.content.trim();
+  } catch (error) {
+    console.error('AI call failed:', error);
+    throw error;
   }
-  
-  if (lowerPrompt.includes('alternative') || lowerPrompt.includes('ways to say')) {
-    const messageMatch = prompt.match(/"([^"]+)"/);
-    if (messageMatch) {
-      const original = messageMatch[1];
-      return [
-        `I'd like to share my thoughts on ${original.toLowerCase().replace(/\.$/, '')}`,
-        `I feel it would help if we talked about ${original.toLowerCase().replace(/\.$/, '')}`,
-        `Would you be open to discussing ${original.toLowerCase().replace(/\.$/, '')}?`
-      ].join('\n');
-    }
-  }
-  
-  if (lowerPrompt.includes('emotion') || lowerPrompt.includes('analyze')) {
-    return JSON.stringify({
-      primaryEmotion: 'calm',
-      intensity: 5,
-      secondaryEmotions: [],
-      sentimentScore: 0.5,
-      triggerWords: [],
-      emotionalContext: 'The message appears to express a neutral to positive emotional state.'
-    });
-  }
-  
-  return "I understand what you're sharing. It's important to express feelings openly and constructively. Consider using I-statements to communicate your needs while remaining respectful of the other person's perspective.";
 };
