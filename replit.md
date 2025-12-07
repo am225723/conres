@@ -5,30 +5,31 @@ A sophisticated real-time messaging platform for couples with AI-powered insight
 
 ## Technology Stack
 - **Frontend**: React 18 + Vite + Tailwind CSS
-- **Backend**: Supabase (PostgreSQL with real-time) - No Express server
-- **Database**: Supabase (PostgreSQL with real-time subscriptions)
-- **AI**: Local keyword-based analysis with optional Supabase Edge Function support
+- **Backend**: Supabase (PostgreSQL with real-time + Edge Functions)
+- **Database**: Supabase PostgreSQL with CONRES_ prefixed tables
+- **AI**: Supabase Edge Functions calling Perplexity API
 - **Build Tool**: Vite
 
 ## Architecture
 - Frontend-only architecture (no Express backend)
 - Frontend runs on port 5000 (Vite dev server)
 - All data operations use Supabase client directly
-- AI functions use local analysis with fallbacks
+- AI features use Supabase Edge Functions (tone-analyze, generate-i-statement)
 - Real-time messaging via Supabase realtime subscriptions
+- Database tables prefixed with CONRES_
 
-## Recent Changes (Dec 1, 2025 - Supabase Migration)
+## Recent Changes (Dec 7, 2025 - Supabase Edge Functions)
+- **Supabase Edge Functions**: Deployed serverless functions for AI features
+  - `tone-analyze` - Perplexity AI-powered tone analysis with 17 emotional tones
+  - `generate-i-statement` - Perplexity AI-powered I-Statement generation
+- **Database Tables**: All tables prefixed with CONRES_ (CONRES_sessions, CONRES_messages, CONRES_participants, CONRES_session_analytics)
+- **Secure API Keys**: PPLX_API_KEY stored in Supabase secrets, not exposed to client
+- **Session Codes**: 6-digit numeric codes for easier sharing
+
+## Previous Changes (Dec 1, 2025 - Supabase Migration)
 - **MAJOR: Removed Express Backend**: Complete migration to Supabase-only architecture
-- **AI Service Refactor**: Created src/lib/aiService.js with Perplexity AI integration
-  - `analyzeTone()` - AI-powered tone analysis with 17 emotional tones
-  - `generateIStatement()` - AI-powered I-Statement generation  
-  - `transcribeVoice()` - Simulated transcription (placeholder for Whisper API)
-  - `callAI()` - General AI function for prompts
-  - Local fallbacks when API unavailable
 - **Direct Supabase Calls**: All session/message operations use Supabase client
-- **Removed Proxy**: Vite config no longer proxies to backend server
 - **Removed Dependencies**: Express, cors, dotenv, multer, node-fetch, pusher removed
-- **Session Codes**: Changed from 8-character to 6-digit format for easier sharing
 - **Mobile Ready**: Architecture optimized for mobile web app deployment
 
 ## Previous Updates (Nov 1, 2025)

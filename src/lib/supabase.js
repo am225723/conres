@@ -1,8 +1,12 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Supabase configuration
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://vrzpwzwhdikmdmagkbtt.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZyenB3endoZGlrbWRtYWdrYnR0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjA3ODUyMTAsImV4cCI6MjA3NjM2MTIxMH0.Q4SYhikV38ZcHeIxCo28wWUI1pqDPPz4SKETnzxfCYE';
+// Supabase configuration - uses environment variables
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  console.error('Missing Supabase environment variables');
+}
 
 // Create Supabase client with realtime configuration
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -18,10 +22,9 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
 
 // Helper function to generate 6-digit session code
 export const generateSessionCode = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
   let code = '';
   for (let i = 0; i < 6; i++) {
-    code += chars.charAt(Math.floor(Math.random() * chars.length));
+    code += Math.floor(Math.random() * 10).toString();
   }
   return code;
 };
@@ -32,7 +35,7 @@ export const createSession = async () => {
     const sessionCode = generateSessionCode();
     
     const { data, error } = await supabase
-      .from('sessions')
+      .from('CONRES_sessions')
       .insert([{ session_code: sessionCode }])
       .select()
       .single();
@@ -51,7 +54,7 @@ export const joinSession = async (sessionCode, userId, nickname = null) => {
   try {
     // First, find the session by code
     const { data: session, error: sessionError } = await supabase
-      .from('sessions')
+      .from('CONRES_sessions')
       .select('*')
       .eq('session_code', sessionCode)
       .single();
@@ -60,7 +63,7 @@ export const joinSession = async (sessionCode, userId, nickname = null) => {
 
     // Check if user is already a participant
     const { data: existingParticipant } = await supabase
-      .from('participants')
+      .from('CONRES_participants')
       .select('*')
       .eq('session_id', session.id)
       .eq('user_id', userId)
@@ -69,7 +72,7 @@ export const joinSession = async (sessionCode, userId, nickname = null) => {
     if (existingParticipant) {
       // Update last_seen
       await supabase
-        .from('participants')
+        .from('CONRES_participants')
         .update({ last_seen: new Date().toISOString(), is_active: true })
         .eq('id', existingParticipant.id);
       
@@ -78,7 +81,7 @@ export const joinSession = async (sessionCode, userId, nickname = null) => {
 
     // Add user as participant
     const { error: participantError } = await supabase
-      .from('participants')
+      .from('CONRES_participants')
       .insert([
         {
           session_id: session.id,
@@ -100,7 +103,7 @@ export const joinSession = async (sessionCode, userId, nickname = null) => {
 export const sendMessage = async (sessionId, userId, messageText, toneAnalysis) => {
   try {
     const { data, error } = await supabase
-      .from('messages')
+      .from('CONRES_messages')
       .insert([
         {
           session_id: sessionId,
@@ -127,7 +130,7 @@ export const sendMessage = async (sessionId, userId, messageText, toneAnalysis) 
 export const getMessageHistory = async (sessionId) => {
   try {
     const { data, error } = await supabase
-      .from('messages')
+      .from('CONRES_messages')
       .select('*')
       .eq('session_id', sessionId)
       .order('created_at', { ascending: true });
@@ -145,7 +148,7 @@ export const getMessageHistory = async (sessionId) => {
 export const getSessionParticipants = async (sessionId) => {
   try {
     const { data, error } = await supabase
-      .from('participants')
+      .from('CONRES_participants')
       .select('*')
       .eq('session_id', sessionId)
       .eq('is_active', true);
@@ -163,7 +166,7 @@ export const getSessionParticipants = async (sessionId) => {
 export const leaveSession = async (sessionId, userId) => {
   try {
     const { error } = await supabase
-      .from('participants')
+      .from('CONRES_participants')
       .update({ is_active: false })
       .eq('session_id', sessionId)
       .eq('user_id', userId);
