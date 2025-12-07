@@ -491,13 +491,15 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
                         <div className="flex-1 relative">
                             {currentTone && message.trim() && (
                                 <div 
-                                    className="absolute -top-8 left-0 px-3 py-1 rounded-full text-xs font-medium shadow-lg backdrop-blur-sm animate-in fade-in slide-in-from-bottom-2 duration-200"
+                                    className="absolute -top-10 left-0 px-4 py-2 rounded-lg text-sm font-semibold shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-bottom-2 duration-200 border-2"
                                     style={{
-                                        backgroundColor: `${inputBoxColor}`,
-                                        color: '#000'
+                                        backgroundColor: inputBoxColor === '#FFFFFF' ? '#f0f0f0' : inputBoxColor,
+                                        color: inputBoxColor === '#FFFFFF' ? '#333' : '#fff',
+                                        borderColor: inputBoxColor,
+                                        textShadow: inputBoxColor !== '#FFFFFF' ? '0 1px 2px rgba(0,0,0,0.3)' : 'none'
                                     }}
                                 >
-                                    Tone: {currentTone}
+                                    Tone: {currentTone.charAt(0).toUpperCase() + currentTone.slice(1)}
                                 </div>
                             )}
                             <textarea

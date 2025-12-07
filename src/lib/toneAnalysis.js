@@ -18,7 +18,15 @@ export const TONE_COLORS = {
   blaming: '#FF0000',
   confrontational: '#DC143C',
   aggressive: '#B22222',
-  hostile: '#8B0000'
+  hostile: '#8B0000',
+  loving: '#FF69B4',
+  playful: '#DDA0DD',
+  hopeful: '#87CEEB',
+  sad: '#6B8E9F',
+  angry: '#CD5C5C',
+  frustrated: '#FF7F50',
+  defensive: '#D2691E',
+  neutral: '#B0B0B0'
 };
 
 export const TONE_DESCRIPTIONS = {
@@ -38,7 +46,15 @@ export const TONE_DESCRIPTIONS = {
   blaming: 'Fault-finding, direct',
   confrontational: 'Challenging, intense',
   aggressive: 'Strong, forceful',
-  hostile: 'Dark, threatening'
+  hostile: 'Dark, threatening',
+  loving: 'Warm, affectionate',
+  playful: 'Light, fun',
+  hopeful: 'Optimistic, positive',
+  sad: 'Melancholic, down',
+  angry: 'Upset, heated',
+  frustrated: 'Irritated, stuck',
+  defensive: 'Protective, guarded',
+  neutral: 'Balanced, even'
 };
 
 // Get tone color by name
