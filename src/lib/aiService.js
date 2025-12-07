@@ -33,26 +33,19 @@ export const generateIStatement = async (text) => {
     return text;
   }
 
-  try {
-    const { data, error } = await supabase.functions.invoke('generate-i-statement', {
-      body: { text }
-    });
+  const { data, error } = await supabase.functions.invoke('generate-i-statement', {
+    body: { text }
+  });
 
-    if (error) {
-      console.warn('Edge function error, using local fallback:', error.message);
-      return generateIStatementLocally(text);
-    }
-
-    if (data.error) {
-      console.warn('AI I-Statement generation failed, using local fallback:', data.error);
-      return generateIStatementLocally(text);
-    }
-
-    return data.iStatement;
-  } catch (error) {
-    console.warn('AI I-Statement generation failed, using local fallback:', error.message);
-    return generateIStatementLocally(text);
+  if (error) {
+    throw new Error(`I-Statement generation failed: ${error.message}`);
   }
+
+  if (data.error) {
+    throw new Error(`I-Statement generation failed: ${data.error}`);
+  }
+
+  return data.iStatement;
 };
 
 export const generateIStatementLocally = (text) => {
