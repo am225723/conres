@@ -21,7 +21,7 @@ export const ConversationDashboard = ({ messages: propMessages }) => {
         // Fetch recent messages (limited for security and performance)
         // In production, scope this to the authenticated user's sessions
         const { data, error } = await supabase
-          .from('CONRES_messages')
+          .from('conres_messages')
           .select('*')
           .order('created_at', { ascending: false })
           .limit(100); // Limit to recent 100 messages for performance

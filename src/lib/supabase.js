@@ -35,7 +35,7 @@ export const createSession = async () => {
     const sessionCode = generateSessionCode();
     
     const { data, error } = await supabase
-      .from('CONRES_sessions')
+      .from('conres_sessions')
       .insert([{ session_code: sessionCode }])
       .select()
       .single();
@@ -54,7 +54,7 @@ export const joinSession = async (sessionCode, userId, nickname = null) => {
   try {
     // First, find the session by code
     const { data: session, error: sessionError } = await supabase
-      .from('CONRES_sessions')
+      .from('conres_sessions')
       .select('*')
       .eq('session_code', sessionCode)
       .single();
@@ -63,7 +63,7 @@ export const joinSession = async (sessionCode, userId, nickname = null) => {
 
     // Check if user is already a participant
     const { data: existingParticipant } = await supabase
-      .from('CONRES_participants')
+      .from('conres_participants')
       .select('*')
       .eq('session_id', session.id)
       .eq('user_id', userId)
@@ -72,7 +72,7 @@ export const joinSession = async (sessionCode, userId, nickname = null) => {
     if (existingParticipant) {
       // Update last_seen
       await supabase
-        .from('CONRES_participants')
+        .from('conres_participants')
         .update({ last_seen: new Date().toISOString(), is_active: true })
         .eq('id', existingParticipant.id);
       
@@ -81,7 +81,7 @@ export const joinSession = async (sessionCode, userId, nickname = null) => {
 
     // Add user as participant
     const { error: participantError } = await supabase
-      .from('CONRES_participants')
+      .from('conres_participants')
       .insert([
         {
           session_id: session.id,
@@ -103,7 +103,7 @@ export const joinSession = async (sessionCode, userId, nickname = null) => {
 export const sendMessage = async (sessionId, userId, messageText, toneAnalysis) => {
   try {
     const { data, error } = await supabase
-      .from('CONRES_messages')
+      .from('conres_messages')
       .insert([
         {
           session_id: sessionId,
@@ -130,7 +130,7 @@ export const sendMessage = async (sessionId, userId, messageText, toneAnalysis) 
 export const getMessageHistory = async (sessionId) => {
   try {
     const { data, error } = await supabase
-      .from('CONRES_messages')
+      .from('conres_messages')
       .select('*')
       .eq('session_id', sessionId)
       .order('created_at', { ascending: true });
@@ -148,7 +148,7 @@ export const getMessageHistory = async (sessionId) => {
 export const getSessionParticipants = async (sessionId) => {
   try {
     const { data, error } = await supabase
-      .from('CONRES_participants')
+      .from('conres_participants')
       .select('*')
       .eq('session_id', sessionId)
       .eq('is_active', true);
@@ -166,7 +166,7 @@ export const getSessionParticipants = async (sessionId) => {
 export const leaveSession = async (sessionId, userId) => {
   try {
     const { error } = await supabase
-      .from('CONRES_participants')
+      .from('conres_participants')
       .update({ is_active: false })
       .eq('session_id', sessionId)
       .eq('user_id', userId);
