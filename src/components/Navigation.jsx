@@ -10,7 +10,7 @@ export const Navigation = () => {
   const navItems = [
     { path: '/', label: 'Builder', icon: Sparkles },
     { path: '/emotions', label: 'Emotions', icon: Heart },
-    { path: '/ai-roleplay', label: 'AI Practice', icon: Bot },
+    { path: '/ai-roleplay', label: 'Role Play Practice', icon: Bot },
     { path: '/couples', label: 'Couples', icon: MessageSquare },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/exercises', label: 'Exercises', icon: Lightbulb },
