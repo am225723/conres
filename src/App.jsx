@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useCallback } from "react";
+import React, { useMemo, useState, useCallback, useEffect } from "react";
 import { Helmet } from "react-helmet-async";
 import { Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
@@ -18,9 +18,19 @@ import { ConversationDashboard } from '@/components/ConversationDashboard';
 import AIStatementBuilder from '@/components/AIStatementBuilder';
 import AIRolePlayer from '@/components/AIRolePlayer';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
+import { SidebarProvider, useSidebar } from '@/context/SidebarContext';
 
 const MainApp = () => {
   const { toast } = useToast();
+  const { isCollapsed } = useSidebar();
+  const [isDesktop, setIsDesktop] = useState(false);
+
+  useEffect(() => {
+    const checkDesktop = () => setIsDesktop(window.innerWidth >= 768);
+    checkDesktop();
+    window.addEventListener('resize', checkDesktop);
+    return () => window.removeEventListener('resize', checkDesktop);
+  }, []);
 
   const [feeling, setFeeling] = useState("");
   const [situation, setSituation] = useState("");
@@ -272,10 +282,15 @@ const MainApp = () => {
   const propsJournal = { journalEntry, setJournalEntry, addJournalEntry, journal };
   const propsHistory = { insights, history };
 
+  const sidebarWidth = isCollapsed ? 72 : 240;
+
   return (
     <div className="min-h-screen">
       <Navigation />
-      <div className="md:ml-[240px] transition-all duration-300">
+      <div 
+        className="transition-all duration-200"
+        style={{ marginLeft: isDesktop ? sidebarWidth : 0 }}
+      >
         <div className="p-4 space-y-6">
           <Header logoSrc="https://horizons-cdn.hostinger.com/072b7eea-05b1-4460-9b36-68b9a8e786c7/1afbcf7cdc983bde44c229eaafbd4b60.png" badges={badges} />
           <div className="w-full max-w-6xl mx-auto space-y-6">
@@ -300,7 +315,7 @@ const MainApp = () => {
 
 export default function App() {
   return (
-    <>
+    <SidebarProvider>
       <Helmet>
         <title>I-Statement Builder - Transform Your Communication</title>
         <meta name="description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
@@ -313,6 +328,6 @@ export default function App() {
         <Route path="/couples/:sessionId" element={<CouplesTexting />} />
         <Route path="/couples" element={<CouplesTexting />} />
       </Routes>
-    </>
+    </SidebarProvider>
   );
 }
