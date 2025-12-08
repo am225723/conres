@@ -295,11 +295,10 @@ const MainApp = () => {
           <Header logoSrc="https://horizons-cdn.hostinger.com/072b7eea-05b1-4460-9b36-68b9a8e786c7/1afbcf7cdc983bde44c229eaafbd4b60.png" badges={badges} />
           <div className="w-full max-w-6xl mx-auto space-y-6">
         <Routes>
-          <Route path="/" element={<BuilderTab {...propsBuilder} />} />
+          <Route path="/" element={<AIStatementBuilder />} />
           <Route path="/emotions" element={<EmotionsTab {...propsEmotions} />} />
           <Route path="/roleplay" element={<RolePlayTab {...propsRoleplay} />} />
           <Route path="/ai-roleplay" element={<AIRolePlayer />} />
-          <Route path="/ai-builder" element={<AIStatementBuilder />} />
           <Route path="/dashboard" element={<ConversationDashboard />} />
           <Route path="/analytics" element={<AnalyticsDashboard />} />
           <Route path="/exercises" element={<ExercisesTab {...propsExercises} />} />

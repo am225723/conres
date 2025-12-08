@@ -8,8 +8,7 @@ export const Navigation = () => {
   const { isCollapsed, toggleCollapse, isMobileOpen, toggleMobile, closeMobile } = useSidebar();
   
   const navItems = [
-    { path: '/', label: 'Builder', icon: Target },
-    { path: '/ai-builder', label: 'AI Builder', icon: Sparkles },
+    { path: '/', label: 'Builder', icon: Sparkles },
     { path: '/emotions', label: 'Emotions', icon: Heart },
     { path: '/roleplay', label: 'Role-Play', icon: Users },
     { path: '/ai-roleplay', label: 'AI Practice', icon: Bot },
