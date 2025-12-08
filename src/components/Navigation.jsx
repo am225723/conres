@@ -1,5 +1,5 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Heart, Target, Users, Lightbulb, Laptop as NotebookPen, Trophy, BarChart3, Sparkles, Bot, MessagesSquare } from 'lucide-react';
+import { Heart, Target, Users, Lightbulb, Laptop as NotebookPen, Trophy, BarChart3, Sparkles, Bot, MessageSquare } from 'lucide-react';
 
 export const Navigation = () => {
   const location = useLocation();
@@ -10,7 +10,7 @@ export const Navigation = () => {
     { path: '/emotions', label: 'Emotions', icon: Heart },
     { path: '/roleplay', label: 'Role-Play', icon: Users },
     { path: '/ai-roleplay', label: 'AI Practice', icon: Bot },
-    { path: '/couples', label: 'Couples', icon: MessagesSquare },
+    { path: '/couples', label: 'Couples', icon: MessageSquare },
     { path: '/analytics', label: 'Analytics', icon: BarChart3 },
     { path: '/exercises', label: 'Exercises', icon: Lightbulb },
     { path: '/journal', label: 'Journal', icon: NotebookPen },
