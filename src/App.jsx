@@ -273,10 +273,12 @@ const MainApp = () => {
   const propsHistory = { insights, history };
 
   return (
-    <div className="min-h-screen p-4 space-y-6">
-      <Header logoSrc="https://horizons-cdn.hostinger.com/072b7eea-05b1-4460-9b36-68b9a8e786c7/1afbcf7cdc983bde44c229eaafbd4b60.png" badges={badges} />
+    <div className="min-h-screen">
       <Navigation />
-      <div className="w-full max-w-6xl mx-auto space-y-6">
+      <div className="md:ml-[240px] transition-all duration-300">
+        <div className="p-4 space-y-6">
+          <Header logoSrc="https://horizons-cdn.hostinger.com/072b7eea-05b1-4460-9b36-68b9a8e786c7/1afbcf7cdc983bde44c229eaafbd4b60.png" badges={badges} />
+          <div className="w-full max-w-6xl mx-auto space-y-6">
         <Routes>
           <Route path="/" element={<BuilderTab {...propsBuilder} />} />
           <Route path="/emotions" element={<EmotionsTab {...propsEmotions} />} />
@@ -288,7 +290,9 @@ const MainApp = () => {
           <Route path="/exercises" element={<ExercisesTab {...propsExercises} />} />
           <Route path="/journal" element={<JournalTab {...propsJournal} />} />
           <Route path="/history" element={<HistoryTab {...propsHistory} />} />
-        </Routes>
+          </Routes>
+          </div>
+        </div>
       </div>
     </div>
   )
