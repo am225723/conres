@@ -10,11 +10,13 @@ import { supabase } from '@/lib/supabase';
 import { toast } from 'react-toastify';
 
 const AIStatementBuilder = ({ onSaveStatement }) => {
+  const [rawFeeling, setRawFeeling] = useState('');
   const [feeling, setFeeling] = useState('');
   const [situation, setSituation] = useState('');
   const [because, setBecause] = useState('');
   const [request, setRequest] = useState('');
   const [firmness, setFirmness] = useState([30]);
+  const [useRawMode, setUseRawMode] = useState(true);
   
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState('');
@@ -30,9 +32,16 @@ const AIStatementBuilder = ({ onSaveStatement }) => {
   }, [messages]);
 
   const generateStatement = async () => {
-    if (!feeling.trim() && !situation.trim()) {
-      toast.error('Please fill in at least the feeling and situation fields');
-      return;
+    if (useRawMode) {
+      if (!rawFeeling.trim()) {
+        toast.error('Please write what you want to say first');
+        return;
+      }
+    } else {
+      if (!feeling.trim() && !situation.trim()) {
+        toast.error('Please fill in at least the feeling and situation fields');
+        return;
+      }
     }
     
     setIsLoading(true);
@@ -41,9 +50,26 @@ const AIStatementBuilder = ({ onSaveStatement }) => {
     try {
       const firmnessTone = firmness[0] < 33 ? 'gentle and soft' : firmness[0] < 66 ? 'balanced and calm' : 'assertive and direct';
       
-      const { data, error } = await supabase.functions.invoke('generate-i-statement', {
-        body: { 
-          text: `Create a well-formed I-Statement based on these inputs. The tone should be ${firmnessTone}.
+      let prompt;
+      if (useRawMode) {
+        prompt = `Transform this raw, unfiltered message into a healthy I-Statement. The person is venting - help them express this constructively.
+
+WHAT THEY WANT TO SAY (raw, unfiltered):
+"${rawFeeling}"
+
+DESIRED TONE: ${firmnessTone}
+
+YOUR TASK:
+1. Identify the core emotion behind their words (hurt, frustrated, anxious, overwhelmed, etc.)
+2. Understand what situation triggered this feeling
+3. Recognize what they need from their partner
+4. Transform it into a constructive I-Statement format: "I feel [emotion] when [situation] because [impact]. I would appreciate if [request]."
+
+IMPORTANT: Keep the emotional truth of their message but express it without blame or attack. The I-Statement should address the same concern but in a way their partner can hear.
+
+Return ONLY the I-Statement, nothing else.`;
+      } else {
+        prompt = `Create a well-formed I-Statement based on these inputs. The tone should be ${firmnessTone}.
 
 USER'S INPUTS:
 - Feeling: ${feeling || 'not specified'}
@@ -57,8 +83,11 @@ Create a natural, empathetic I-Statement that:
 3. Explains the personal impact
 4. Makes a constructive request
 
-Return ONLY the I-Statement, nothing else. Make it sound natural and conversational, not robotic.`
-        }
+Return ONLY the I-Statement, nothing else. Make it sound natural and conversational, not robotic.`;
+      }
+      
+      const { data, error } = await supabase.functions.invoke('generate-i-statement', {
+        body: { text: prompt }
       });
 
       if (error) throw error;
@@ -68,20 +97,26 @@ Return ONLY the I-Statement, nothing else. Make it sound natural and conversatio
       setVerificationStep(true);
       setShowChat(true);
       
+      const originalText = useRawMode ? rawFeeling : `Feeling: ${feeling}, Situation: ${situation}`;
       setMessages([{
         role: 'assistant',
-        content: `I've created this I-Statement based on your input:\n\n"${statement}"\n\nDoes this capture what you wanted to express? If not, tell me what's missing or what you'd like to change.`
+        content: `I've transformed your message into this I-Statement:\n\n"${statement}"\n\nDoes this capture what you wanted to express? If not, tell me what's missing or what you'd like to change.`
       }]);
 
     } catch (error) {
       console.error('AI error:', error);
-      const manualStatement = `I feel ${feeling || '[emotion]'} when ${situation || '[situation]'} because ${because || '[impact]'}. Could we ${request || '[request]'}?`;
+      let manualStatement;
+      if (useRawMode) {
+        manualStatement = `I feel [emotion] when [situation] because [impact]. Could we [request]?`;
+      } else {
+        manualStatement = `I feel ${feeling || '[emotion]'} when ${situation || '[situation]'} because ${because || '[impact]'}. Could we ${request || '[request]'}?`;
+      }
       setGeneratedStatement(manualStatement);
       setVerificationStep(true);
       setShowChat(true);
       setMessages([{
         role: 'assistant',
-        content: `Here's a basic I-Statement from your input:\n\n"${manualStatement}"\n\nI couldn't connect to AI to enhance it, but you can refine it here. Tell me what you'd like to change.`
+        content: `I couldn't connect to AI right now. Here's a template:\n\n"${manualStatement}"\n\nTell me more about what you're feeling and I'll help you build it.`
       }]);
     } finally {
       setIsLoading(false);
@@ -181,10 +216,14 @@ Keep responses supportive and concise. If you create a new statement, include it
     if (!generatedStatement) return;
     
     try {
+      const originalMessage = useRawMode 
+        ? rawFeeling 
+        : `Feeling: ${feeling}, Situation: ${situation}, Because: ${because}, Request: ${request}`;
+      
       const { error } = await supabase
         .from('conres_istatement_history')
         .insert([{
-          original_message: `Feeling: ${feeling}, Situation: ${situation}, Because: ${because}, Request: ${request}`,
+          original_message: originalMessage,
           final_statement: generatedStatement,
           conversation: JSON.stringify(messages)
         }]);
@@ -199,6 +238,7 @@ Keep responses supportive and concise. If you create a new statement, include it
   };
 
   const resetAll = () => {
+    setRawFeeling('');
     setFeeling('');
     setSituation('');
     setBecause('');
@@ -228,45 +268,88 @@ Keep responses supportive and concise. If you create a new statement, include it
             )}
           </div>
 
+          <div className="flex rounded-lg bg-muted/50 p-1 mb-2">
+            <button
+              onClick={() => setUseRawMode(true)}
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                useRawMode 
+                  ? 'bg-white dark:bg-gray-800 shadow text-foreground' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Express Freely
+            </button>
+            <button
+              onClick={() => setUseRawMode(false)}
+              className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-all ${
+                !useRawMode 
+                  ? 'bg-white dark:bg-gray-800 shadow text-foreground' 
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Structured
+            </button>
+          </div>
+
           <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">I feel...</label>
-              <Input
-                value={feeling}
-                onChange={(e) => setFeeling(e.target.value)}
-                placeholder="hurt, frustrated, worried, anxious..."
-                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">When...</label>
-              <Textarea
-                value={situation}
-                onChange={(e) => setSituation(e.target.value)}
-                placeholder="Describe what happened or the specific situation..."
-                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-                rows={2}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Because...</label>
-              <Textarea
-                value={because}
-                onChange={(e) => setBecause(e.target.value)}
-                placeholder="Explain how it affects you personally..."
-                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-                rows={2}
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Could we... (Request)</label>
-              <Input
-                value={request}
-                onChange={(e) => setRequest(e.target.value)}
-                placeholder="talk about this, find a solution together..."
-                className="bg-input border-border text-foreground placeholder:text-muted-foreground"
-              />
-            </div>
+            {useRawMode ? (
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">
+                  What do you really want to say? Don't hold back...
+                </label>
+                <Textarea
+                  value={rawFeeling}
+                  onChange={(e) => setRawFeeling(e.target.value)}
+                  placeholder="Write exactly what you're feeling, even if it sounds harsh or blaming. Get it all out - I'll help you transform it into something constructive..."
+                  className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[180px]"
+                  rows={6}
+                />
+                <p className="text-xs text-muted-foreground mt-2">
+                  This is a safe space. Express yourself honestly - the AI will help transform it into a healthy I-Statement.
+                </p>
+              </div>
+            ) : (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">I feel...</label>
+                  <Input
+                    value={feeling}
+                    onChange={(e) => setFeeling(e.target.value)}
+                    placeholder="hurt, frustrated, worried, anxious..."
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">When...</label>
+                  <Textarea
+                    value={situation}
+                    onChange={(e) => setSituation(e.target.value)}
+                    placeholder="Describe what happened or the specific situation..."
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                    rows={2}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Because...</label>
+                  <Textarea
+                    value={because}
+                    onChange={(e) => setBecause(e.target.value)}
+                    placeholder="Explain how it affects you personally..."
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                    rows={2}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-2">Could we... (Request)</label>
+                  <Input
+                    value={request}
+                    onChange={(e) => setRequest(e.target.value)}
+                    placeholder="talk about this, find a solution together..."
+                    className="bg-input border-border text-foreground placeholder:text-muted-foreground"
+                  />
+                </div>
+              </>
+            )}
             <div>
               <label className="block text-sm font-medium text-foreground mb-2">Tone: {firmness[0] < 33 ? 'Gentle' : firmness[0] < 66 ? 'Balanced' : 'Assertive'}</label>
               <Slider
@@ -284,7 +367,7 @@ Keep responses supportive and concise. If you create a new statement, include it
             </div>
             <Button
               onClick={generateStatement}
-              disabled={isLoading || (!feeling.trim() && !situation.trim())}
+              disabled={isLoading || (useRawMode ? !rawFeeling.trim() : (!feeling.trim() && !situation.trim()))}
               className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 text-white"
             >
               {isLoading ? (
