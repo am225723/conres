@@ -15,6 +15,9 @@ import { JournalTab } from '@/components/JournalTab';
 import { HistoryTab } from '@/components/HistoryTab';
 import CouplesTexting from '@/components/CouplesTexting';
 import { ConversationDashboard } from '@/components/ConversationDashboard';
+import AIStatementBuilder from '@/components/AIStatementBuilder';
+import AIRolePlayer from '@/components/AIRolePlayer';
+import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 
 const MainApp = () => {
   const { toast } = useToast();
@@ -256,7 +259,8 @@ const MainApp = () => {
     exportSession, impactPreview
   };
 
-  const propsEmotions = { pickedEmotions, toggleEmotion, pickedNeeds, toggleNeed, insecurityNotes, setInsecurityNotes, affirmation };
+  const [customAffirmation, setCustomAffirmation] = useState('');
+  const propsEmotions = { pickedEmotions, toggleEmotion, pickedNeeds, toggleNeed, insecurityNotes, setInsecurityNotes, affirmation: customAffirmation || affirmation, setAffirmation: setCustomAffirmation };
 
   const propsRoleplay = {
     roleplayStyle, setRoleplayStyle, simulatePartner, stopRoleplay, partnerReply, isPlaying,
@@ -277,7 +281,10 @@ const MainApp = () => {
           <Route path="/" element={<BuilderTab {...propsBuilder} />} />
           <Route path="/emotions" element={<EmotionsTab {...propsEmotions} />} />
           <Route path="/roleplay" element={<RolePlayTab {...propsRoleplay} />} />
+          <Route path="/ai-roleplay" element={<AIRolePlayer />} />
+          <Route path="/ai-builder" element={<AIStatementBuilder />} />
           <Route path="/dashboard" element={<ConversationDashboard />} />
+          <Route path="/analytics" element={<AnalyticsDashboard />} />
           <Route path="/exercises" element={<ExercisesTab {...propsExercises} />} />
           <Route path="/journal" element={<JournalTab {...propsJournal} />} />
           <Route path="/history" element={<HistoryTab {...propsHistory} />} />

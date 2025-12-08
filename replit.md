@@ -6,7 +6,7 @@ A sophisticated real-time messaging platform for couples with AI-powered insight
 ## Technology Stack
 - **Frontend**: React 18 + Vite + Tailwind CSS
 - **Backend**: Supabase (PostgreSQL with real-time + Edge Functions)
-- **Database**: Supabase PostgreSQL with CONRES_ prefixed tables
+- **Database**: Supabase PostgreSQL with conres_ prefixed tables (lowercase)
 - **AI**: Supabase Edge Functions calling Perplexity API
 - **Build Tool**: Vite
 
@@ -16,13 +16,51 @@ A sophisticated real-time messaging platform for couples with AI-powered insight
 - All data operations use Supabase client directly
 - AI features use Supabase Edge Functions (tone-analyze, generate-i-statement)
 - Real-time messaging via Supabase realtime subscriptions
-- Database tables prefixed with CONRES_
+- Database tables prefixed with conres_ (lowercase for PostgreSQL compatibility)
 
-## Recent Changes (Dec 7, 2025 - Supabase Edge Functions)
+## Recent Changes (Dec 8, 2025 - Major Feature Expansion)
+
+### NEW: AI Conversational I-Statement Builder (`/ai-builder`)
+- Conversational chat interface for building I-Statements
+- AI asks follow-up questions to understand emotions and needs
+- Generates properly formatted I-Statements
+- Copy and save functionality
+- Located at: `src/components/AIStatementBuilder.jsx`
+
+### NEW: Healing Animation System (`/emotions`)
+- Interactive healing journey visualization
+- Emotion-specific color themes and animations
+- Multi-phase healing process with affirmations
+- AI-generated personalized affirmations
+- Located at: `src/components/HealingAnimation.jsx`
+- Integrated into: `src/components/EmotionsTab.jsx`
+
+### NEW: AI Role-Playing Partner (`/ai-roleplay`)
+- Practice conversations with AI partner
+- 5 partner personality styles (supportive, defensive, dismissive, avoidant, anxious)
+- Custom scenario input
+- Session saving capability
+- Located at: `src/components/AIRolePlayer.jsx`
+
+### NEW: Analytics Dashboard (`/analytics`)
+- Session statistics (couples sessions, messages, I-statements, role-play)
+- Weekly activity chart
+- Tone distribution visualization
+- Quick stats overview
+- Located at: `src/components/AnalyticsDashboard.jsx`
+
+### NEW: Additional Database Tables
+- `conres_istatement_history` - Stores AI-built I-statements
+- `conres_roleplay_sessions` - Stores role-play sessions
+- `conres_emotion_tracking` - Stores emotion exploration sessions
+- `conres_user_progress` - Tracks overall user progress
+- SQL file: `supabase-additional-tables.sql`
+
+## Previous Changes (Dec 7, 2025 - Supabase Edge Functions)
 - **Supabase Edge Functions**: Deployed serverless functions for AI features
   - `tone-analyze` - Perplexity AI-powered tone analysis with 17 emotional tones
   - `generate-i-statement` - Perplexity AI-powered I-Statement generation
-- **Database Tables**: All tables prefixed with CONRES_ (CONRES_sessions, CONRES_messages, CONRES_participants, CONRES_session_analytics)
+- **Database Tables**: All tables prefixed with conres_ (lowercase)
 - **Secure API Keys**: PPLX_API_KEY stored in Supabase secrets, not exposed to client
 - **Session Codes**: 6-digit numeric codes for easier sharing
 
@@ -32,15 +70,6 @@ A sophisticated real-time messaging platform for couples with AI-powered insight
 - **Removed Dependencies**: Express, cors, dotenv, multer, node-fetch, pusher removed
 - **Mobile Ready**: Architecture optimized for mobile web app deployment
 
-## Previous Updates (Nov 1, 2025)
-- Conversation Health Dashboard with analytics
-- Cool-Down Timer for hostile conversation detection
-- Voice Message Support with tone analysis
-- Full URL Routing for shareable links
-- Real-time Tone Analysis with 17 emotional tones
-- I-Statement Generation modal
-- Dynamic Color System based on message tone
-
 ## Environment Variables
 Located in Replit Secrets (override .env file):
 - `VITE_SUPABASE_URL` - Supabase project URL (efgtznvrnzqcxmfmjuue.supabase.co)
@@ -48,6 +77,18 @@ Located in Replit Secrets (override .env file):
 - `VITE_PPLX_API_KEY` - Perplexity AI API key (for tone analysis and I-statement generation)
 
 **Note**: Replit Secrets take precedence over .env file values
+
+## Navigation Routes
+- `/` - I-Statement Builder (manual)
+- `/ai-builder` - AI Conversational I-Statement Builder
+- `/emotions` - Emotion Explorer with Healing Animation
+- `/roleplay` - Manual Role-Play
+- `/ai-roleplay` - AI Partner Role-Play Practice
+- `/couples` - Real-time Couples Messaging
+- `/analytics` - Analytics Dashboard
+- `/exercises` - Communication Exercises
+- `/journal` - Personal Journal
+- `/history` - Statement History
 
 ## Shareable Session Links
 
@@ -64,25 +105,29 @@ The Couples Texting feature now supports direct shareable links:
 
 ## Key Features
 
+### AI Conversational I-Statement Builder (NEW!)
+- **Chat Interface**: Natural conversation with AI coach
+- **Follow-up Questions**: AI asks clarifying questions about emotions and needs
+- **Smart Generation**: Creates properly formatted I-statements
+- **Save & Copy**: Store statements for future reference
+
+### Healing Animation (NEW!)
+- **Emotion-Based Visualization**: Colors match selected emotions
+- **Multi-Phase Journey**: 5-step healing process
+- **AI Affirmations**: Personalized based on emotions and needs
+- **Session Tracking**: Saves completed healing sessions
+
+### AI Partner Practice (NEW!)
+- **5 Personality Types**: Supportive, Defensive, Dismissive, Avoidant, Anxious
+- **Custom Scenarios**: Practice specific situations
+- **Realistic Responses**: AI adapts to your communication style
+- **Progress Tracking**: Review past practice sessions
+
 ### Analytics Dashboard (NEW!)
-- **Health Score**: Overall relationship communication health (0-100)
-- **Weekly Progress**: Track improvement trends over time
-- **Tone Distribution**: Visual breakdown of emotional tones used
-- **Conflict Detection**: Identifies escalation patterns automatically
-- **Time Insights**: Peak communication times and conflict patterns
-- **Personalized Recommendations**: AI-driven suggestions for improvement
-
-### Cool-Down Timer (NEW!)
-- **Automatic Trigger**: Detects when 2+ hostile messages occur in sequence
-- **Break Suggestions**: Guided cooldown with breathing exercises
-- **Quick Messages**: Send "I need space" with one click
-- **Timer Display**: 5-minute countdown for recommended break time
-
-### Voice Messages (NEW!)
-- **Browser Recording**: Built-in MediaRecorder API integration
-- **Tone Analysis**: Voice messages analyzed for emotional tone
-- **Simulated Transcription**: Demo implementation (production requires Whisper API)
-- Note: Full speech-to-text requires OpenAI Whisper or similar service integration
+- **Session Metrics**: Track all platform usage
+- **Weekly Activity**: Visual progress over time
+- **Tone Analysis**: See communication patterns
+- **Quick Insights**: Key statistics at a glance
 
 ### Couples Texting Module
 - **Real-time Tone Analysis**: As users type, AI analyzes tone and changes input box color
@@ -112,3 +157,4 @@ The Couples Texting feature now supports direct shareable links:
 - The project has hardcoded Supabase credentials as fallbacks in src/lib/supabase.js
 - Vite config already includes `allowedHosts: true` for Replit iframe support
 - Frontend must serve on 0.0.0.0:5000 for Replit preview to work
+- Database table names must be lowercase (PostgreSQL behavior)
