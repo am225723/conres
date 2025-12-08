@@ -13,32 +13,40 @@ import { getMessageHistory, supabase } from '@/lib/supabase';
 
 export const ConversationDashboard = ({ messages: propMessages }) => {
   const [messages, setMessages] = useState(propMessages || []);
+  const [journalEntries, setJournalEntries] = useState([]);
   const [isLoading, setIsLoading] = useState(!propMessages);
 
   useEffect(() => {
-    const fetchAllMessages = async () => {
+    const fetchAllData = async () => {
       try {
-        // Fetch recent messages (limited for security and performance)
-        // In production, scope this to the authenticated user's sessions
-        const { data, error } = await supabase
+        const { data: messagesData, error: messagesError } = await supabase
           .from('conres_messages')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(100); // Limit to recent 100 messages for performance
+          .limit(100);
 
-        if (!error && data) {
-          setMessages(data.reverse()); // Reverse to chronological order
+        if (!messagesError && messagesData) {
+          setMessages(messagesData.reverse());
+        }
+
+        const { data: journalData, error: journalError } = await supabase
+          .from('conres_journal_entries')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (!journalError && journalData) {
+          setJournalEntries(journalData);
         }
       } catch (error) {
-        console.error('Error fetching messages:', error);
-        // RLS policies will prevent unauthorized access
+        console.error('Error fetching data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
     if (!propMessages || propMessages.length === 0) {
-      fetchAllMessages();
+      fetchAllData();
     }
   }, [propMessages]);
 
@@ -218,6 +226,22 @@ export const ConversationDashboard = ({ messages: propMessages }) => {
           </li>
         </ul>
       </Card>
+
+      {journalEntries.length > 0 && (
+        <Card className="p-6">
+          <h3 className="text-lg font-semibold mb-4">📝 Recent Journal Reflections</h3>
+          <div className="space-y-3 max-h-96 overflow-y-auto">
+            {journalEntries.slice(0, 5).map((entry) => (
+              <div key={entry.id} className="p-3 rounded bg-background/50 border border-border/50">
+                <p className="text-sm text-foreground/90">{entry.entry_text}</p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  {new Date(entry.created_at).toLocaleDateString()}
+                </p>
+              </div>
+            ))}
+          </div>
+        </Card>
+      )}
     </div>
   );
 };

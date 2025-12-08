@@ -7,9 +7,7 @@ import { BADGE_DEFINITIONS, EXERCISES } from '@/lib/constants';
 
 import { Header } from '@/components/Header';
 import { Navigation } from '@/components/Navigation';
-import { BuilderTab } from '@/components/BuilderTab';
 import { EmotionsTab } from '@/components/EmotionsTab';
-import { RolePlayTab } from '@/components/RolePlayTab';
 import { ExercisesTab } from '@/components/ExercisesTab';
 import { JournalTab } from '@/components/JournalTab';
 import { HistoryTab } from '@/components/HistoryTab';
@@ -272,12 +270,6 @@ const MainApp = () => {
   const [customAffirmation, setCustomAffirmation] = useState('');
   const propsEmotions = { pickedEmotions, toggleEmotion, pickedNeeds, toggleNeed, insecurityNotes, setInsecurityNotes, affirmation: customAffirmation || affirmation, setAffirmation: setCustomAffirmation };
 
-  const propsRoleplay = {
-    roleplayStyle, setRoleplayStyle, simulatePartner, stopRoleplay, partnerReply, isPlaying,
-    couplesMode, setCouplesMode, partnerFeeling, setPartnerFeeling, partnerSituation,
-    setPartnerSituation, partnerBecause, setPartnerBecause, partnerRequest, setPartnerRequest, mergedCouplesView
-  };
-
   const propsExercises = { currentExercise, nextExercise, handleCheckin, checkin, tip };
   const propsJournal = { journalEntry, setJournalEntry, addJournalEntry, journal };
   const propsHistory = { insights, history };
@@ -297,7 +289,6 @@ const MainApp = () => {
         <Routes>
           <Route path="/" element={<AIStatementBuilder />} />
           <Route path="/emotions" element={<EmotionsTab {...propsEmotions} />} />
-          <Route path="/roleplay" element={<RolePlayTab {...propsRoleplay} />} />
           <Route path="/ai-roleplay" element={<AIRolePlayer />} />
           <Route path="/dashboard" element={<ConversationDashboard />} />
           <Route path="/analytics" element={<AnalyticsDashboard />} />

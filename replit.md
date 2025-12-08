@@ -18,43 +18,53 @@ A sophisticated real-time messaging platform for couples with AI-powered insight
 - Real-time messaging via Supabase realtime subscriptions
 - Database tables prefixed with conres_ (lowercase for PostgreSQL compatibility)
 
-## Recent Changes (Dec 8, 2025 - Major Feature Expansion)
+## Recent Changes (Dec 8, 2025 - Major UI & Feature Reorganization)
 
-### NEW: AI Conversational I-Statement Builder (`/ai-builder`)
-- Conversational chat interface for building I-Statements
-- AI asks follow-up questions to understand emotions and needs
-- Generates properly formatted I-Statements
+### UPDATED: AI I-Statement Builder is now Main Page
+- `/` now displays the combined AI I-Statement Builder (was `/ai-builder`)
+- **Two input modes**:
+  1. **Express Freely** - Write raw, unfiltered thoughts about what you want to say
+  2. **Structured** - Fill in form fields (I feel, When, Because, Could we)
+- AI transforms either input into healthy I-Statements
+- **Verification step** - After generation, AI asks "Does this capture what you wanted to say?"
+- Users can refine through chat conversation with the AI
 - Copy and save functionality
-- Located at: `src/components/AIStatementBuilder.jsx`
 
-### NEW: Healing Animation System (`/emotions`)
-- Interactive healing journey visualization
-- Emotion-specific color themes and animations
-- Multi-phase healing process with affirmations
-- AI-generated personalized affirmations
-- Located at: `src/components/HealingAnimation.jsx`
-- Integrated into: `src/components/EmotionsTab.jsx`
+### UPDATED: AI Practice Partner - Multi-Scenario Support
+- Now supports practicing with different relationship types:
+  - Romantic Partner
+  - Close Friend
+  - Coworker
+  - Manager/Supervisor
+  - Family Member
+- 5 response styles (Supportive, Defensive, Dismissive, Avoidant, Anxious)
+- Each relationship type gets AI-tailored responses
+- Session saving with relationship type and personality style tracking
+- **Removed**: Old manual Role-Play option
 
-### NEW: AI Role-Playing Partner (`/ai-roleplay`)
-- Practice conversations with AI partner
-- 5 partner personality styles (supportive, defensive, dismissive, avoidant, anxious)
-- Custom scenario input
-- Session saving capability
-- Located at: `src/components/AIRolePlayer.jsx`
+### UPDATED: Journal Auto-Saves to Dashboard
+- Journal entries now automatically save to Supabase database
+- Entries display in the Conversation Dashboard as "Recent Journal Reflections"
+- Dashboard shows last 5 journal entries with dates
+- Entries persist across sessions (requires `conres_journal_entries` table)
 
-### NEW: Analytics Dashboard (`/analytics`)
-- Session statistics (couples sessions, messages, I-statements, role-play)
-- Weekly activity chart
-- Tone distribution visualization
-- Quick stats overview
-- Located at: `src/components/AnalyticsDashboard.jsx`
+### UPDATED: Navigation Structure
+- Removed duplicate "Builder" and "Role-Play" options
+- Cleaner sidebar with 8 main sections:
+  1. Builder (AI I-Statement Builder)
+  2. Emotions
+  3. AI Practice (replaces Role-Play)
+  4. Couples
+  5. Analytics
+  6. Exercises
+  7. Journal
+  8. History
 
-### NEW: Additional Database Tables
-- `conres_istatement_history` - Stores AI-built I-statements
-- `conres_roleplay_sessions` - Stores role-play sessions
-- `conres_emotion_tracking` - Stores emotion exploration sessions
-- `conres_user_progress` - Tracks overall user progress
-- SQL file: `supabase-additional-tables.sql`
+### UPDATED: Conversation Dashboard
+- Now includes recent journal reflections section
+- Shows last 5 journal entries with dates
+- Displays alongside message analytics and tone distribution
+- Provides comprehensive view of user's communication journey
 
 ## Previous Changes (Dec 7, 2025 - Supabase Edge Functions)
 - **Supabase Edge Functions**: Deployed serverless functions for AI features
@@ -79,54 +89,50 @@ Located in Replit Secrets (override .env file):
 **Note**: Replit Secrets take precedence over .env file values
 
 ## Navigation Routes
-- `/` - I-Statement Builder (manual)
-- `/ai-builder` - AI Conversational I-Statement Builder
+- `/` - AI I-Statement Builder (Express Freely or Structured mode)
 - `/emotions` - Emotion Explorer with Healing Animation
-- `/roleplay` - Manual Role-Play
-- `/ai-roleplay` - AI Partner Role-Play Practice
+- `/ai-roleplay` - AI Practice Partner (romantic, friend, coworker, manager, family)
 - `/couples` - Real-time Couples Messaging
-- `/analytics` - Analytics Dashboard
+- `/analytics` - Analytics Dashboard with message health scores
 - `/exercises` - Communication Exercises
-- `/journal` - Personal Journal
+- `/journal` - Personal Journal (auto-saves to database)
 - `/history` - Statement History
-
-## Shareable Session Links
-
-The Couples Texting feature now supports direct shareable links:
-
-- **Format**: `https://your-app.replit.dev/couples/SESSION_CODE`
-- **How to Share**:
-  1. Create a new session by entering your nickname and clicking "Create New Session"
-  2. The shareable link is **automatically copied to your clipboard**
-  3. Share this link with your partner via text, email, or any messaging app
-  4. Your partner can click the link to join directly (or enter the session code manually)
-- **Copy Link Button**: Click the "Invite Partner" button in any active chat to re-copy the link
-- **No More 404 Errors**: Refreshing the page now works correctly on all routes
+- `/dashboard` - Conversation Dashboard (message analytics + journal reflections)
 
 ## Key Features
 
-### AI Conversational I-Statement Builder (NEW!)
-- **Chat Interface**: Natural conversation with AI coach
-- **Follow-up Questions**: AI asks clarifying questions about emotions and needs
-- **Smart Generation**: Creates properly formatted I-statements
-- **Save & Copy**: Store statements for future reference
+### AI I-Statement Builder (Main Page)
+- **Express Freely Mode**: Write exactly what you're feeling without holding back
+- **Structured Mode**: Fill in I feel → When → Because → Could we format
+- **AI Transformation**: Converts raw thoughts into constructive I-Statements
+- **Verification**: AI asks if statement captures your intent
+- **Chat Refinement**: Iteratively improve statements through conversation
+- **Save & Copy**: Store for later reference
 
-### Healing Animation (NEW!)
+### AI Practice Partner
+- **Multiple Scenarios**: Practice with partners, friends, coworkers, managers, family
+- **5 Personality Types**: Supportive, Defensive, Dismissive, Avoidant, Anxious
+- **Relationship-Aware**: AI responses change based on relationship type
+- **Custom Scenarios**: Describe specific situations to practice
+- **Session Saving**: Save practice sessions for review
+
+### Journal with Dashboard Integration
+- **Auto-Save**: Entries automatically saved to Supabase
+- **Dashboard View**: Recent reflections appear in Conversation Dashboard
+- **Persistent Storage**: Access entries across sessions
+- **Communication Tracking**: Integrate journaling with message analytics
+
+### Healing Animation
 - **Emotion-Based Visualization**: Colors match selected emotions
 - **Multi-Phase Journey**: 5-step healing process
 - **AI Affirmations**: Personalized based on emotions and needs
 - **Session Tracking**: Saves completed healing sessions
 
-### AI Partner Practice (NEW!)
-- **5 Personality Types**: Supportive, Defensive, Dismissive, Avoidant, Anxious
-- **Custom Scenarios**: Practice specific situations
-- **Realistic Responses**: AI adapts to your communication style
-- **Progress Tracking**: Review past practice sessions
-
-### Analytics Dashboard (NEW!)
+### Analytics Dashboard
 - **Session Metrics**: Track all platform usage
 - **Weekly Activity**: Visual progress over time
 - **Tone Analysis**: See communication patterns
+- **Journal Reflections**: View recent journal entries
 - **Quick Insights**: Key statistics at a glance
 
 ### Couples Texting Module
@@ -138,17 +144,61 @@ The Couples Texting feature now supports direct shareable links:
 - **Smart Fallbacks**: Local tone analysis when API unavailable, polling when realtime fails
 - **Session Management**: Unique 6-digit codes for private, secure conversations
 
-### I-Statement Builder
-- AI-powered emotion detection (11 emotion categories)
-- Emotion tracking with intensity measurement
-- Visual emotion timeline and distribution charts
-- Dynamic UI with emotion-based colors
+## Database Tables Required
+
+For full functionality, create these tables in Supabase:
+
+```sql
+-- Journal entries
+CREATE TABLE conres_journal_entries (
+  id BIGSERIAL PRIMARY KEY,
+  entry_text TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- I-Statement history
+CREATE TABLE conres_istatement_history (
+  id BIGSERIAL PRIMARY KEY,
+  original_message TEXT,
+  final_statement TEXT NOT NULL,
+  conversation JSONB,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Role-play sessions
+CREATE TABLE conres_roleplay_sessions (
+  id BIGSERIAL PRIMARY KEY,
+  scenario TEXT NOT NULL,
+  relationship_type VARCHAR(50),
+  partner_style VARCHAR(50),
+  conversation JSONB,
+  message_count INTEGER,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- Emotion tracking
+CREATE TABLE conres_emotion_tracking (
+  id BIGSERIAL PRIMARY KEY,
+  emotions JSONB,
+  affirmation TEXT,
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+-- User progress
+CREATE TABLE conres_user_progress (
+  id BIGSERIAL PRIMARY KEY,
+  total_statements INTEGER DEFAULT 0,
+  total_sessions INTEGER DEFAULT 0,
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+```
 
 ## Development Workflow
 1. Frontend dev server runs (npm run dev on port 5000)
 2. User accesses application through port 5000
 3. All data operations use Supabase client directly (no backend proxy)
 4. Real-time updates via Supabase subscriptions
+5. Journal entries automatically persist to database
 
 ## User Preferences
 - No specific preferences recorded yet
@@ -158,3 +208,5 @@ The Couples Texting feature now supports direct shareable links:
 - Vite config already includes `allowedHosts: true` for Replit iframe support
 - Frontend must serve on 0.0.0.0:5000 for Replit preview to work
 - Database table names must be lowercase (PostgreSQL behavior)
+- Journal entries require `conres_journal_entries` table to be created in Supabase
+- AI Practice supports 5 relationship types: romantic, friend, coworker, manager, family

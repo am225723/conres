@@ -12,10 +12,19 @@ const AIRolePlayer = ({ onSaveSession }) => {
   const [messages, setMessages] = useState([]);
   const [userInput, setUserInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [relationshipType, setRelationshipType] = useState('romantic');
   const [partnerStyle, setPartnerStyle] = useState('supportive');
   const [scenario, setScenario] = useState('');
   const [isStarted, setIsStarted] = useState(false);
   const messagesEndRef = useRef(null);
+
+  const relationshipTypes = {
+    romantic: "your romantic partner",
+    friend: "your close friend",
+    coworker: "your coworker or colleague",
+    manager: "your manager or supervisor",
+    family: "a family member"
+  };
 
   const partnerStyles = {
     supportive: "warm, understanding, and validating. You actively listen and acknowledge feelings.",
@@ -41,13 +50,13 @@ const AIRolePlayer = ({ onSaveSession }) => {
     try {
       const { data, error } = await supabase.functions.invoke('generate-i-statement', {
         body: { 
-          text: `You are playing the role of a romantic partner in a relationship role-play exercise.
+          text: `You are playing the role of ${relationshipTypes[relationshipType]} in a communication practice role-play.
 
 PARTNER PERSONALITY: ${partnerStyles[partnerStyle]}
 
 SCENARIO: ${scenario}
 
-Start the conversation as the partner. React to the scenario naturally based on your personality type. Keep your response to 2-3 sentences. Don't break character.`
+Start the conversation as this person. React to the scenario naturally based on your personality type. Keep your response to 2-3 sentences. Don't break character.`
         }
       });
 
@@ -78,12 +87,12 @@ Start the conversation as the partner. React to the scenario naturally based on 
 
     try {
       const conversationHistory = [...messages, newUserMessage].map(m => 
-        `${m.role === 'user' ? 'You' : 'Partner'}: ${m.content}`
+        `${m.role === 'user' ? 'You' : 'Other Person'}: ${m.content}`
       ).join('\n');
 
       const { data, error } = await supabase.functions.invoke('generate-i-statement', {
         body: { 
-          text: `You are playing the role of a romantic partner in a relationship role-play exercise.
+          text: `You are playing the role of ${relationshipTypes[relationshipType]} in a communication practice role-play.
 
 PARTNER PERSONALITY: ${partnerStyles[partnerStyle]}
 
@@ -92,7 +101,7 @@ SCENARIO: ${scenario}
 CONVERSATION SO FAR:
 ${conversationHistory}
 
-Respond as the partner. Stay in character based on your personality type. If the user is practicing healthy communication (I-statements, active listening), gradually become more receptive. Keep responses to 2-3 sentences. Be authentic but remember this is a learning exercise.`
+Respond naturally. Stay in character based on your personality type. If the user is practicing healthy communication (I-statements, active listening), gradually become more receptive. Keep responses to 2-3 sentences. Be authentic but remember this is a learning exercise.`
         }
       });
 
@@ -123,6 +132,7 @@ Respond as the partner. Stay in character based on your personality type. If the
   const resetSession = () => {
     setMessages([]);
     setScenario('');
+    setRelationshipType('romantic');
     setIsStarted(false);
   };
 
@@ -132,6 +142,7 @@ Respond as the partner. Stay in character based on your personality type. If the
         .from('conres_roleplay_sessions')
         .insert([{
           scenario,
+          relationship_type: relationshipType,
           partner_style: partnerStyle,
           conversation: JSON.stringify(messages),
           message_count: messages.length
@@ -152,7 +163,7 @@ Respond as the partner. Stay in character based on your personality type. If the
         <div className="flex items-center justify-between p-4 border-b border-border/20 bg-gradient-to-r from-blue-500/10 to-cyan-500/10">
           <div className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-pink-500" />
-            <h2 className="text-lg font-bold text-foreground">AI Partner Role-Play</h2>
+            <h2 className="text-lg font-bold text-foreground">AI Practice Partner</h2>
           </div>
           {isStarted && (
             <div className="flex gap-2">
@@ -168,25 +179,41 @@ Respond as the partner. Stay in character based on your personality type. If the
         </div>
 
         {!isStarted ? (
-          <div className="flex-1 p-6 space-y-6">
+          <div className="flex-1 p-6 space-y-6 overflow-y-auto">
             <div className="text-center mb-6">
               <h3 className="text-xl font-semibold text-foreground mb-2">Practice Your Communication</h3>
-              <p className="text-muted-foreground">Set up a scenario to practice with an AI partner</p>
+              <p className="text-muted-foreground">Set up a scenario to practice with different people</p>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-foreground mb-2">Partner Response Style</label>
+                <label className="block text-sm font-medium text-foreground mb-2">Relationship Type</label>
+                <Select value={relationshipType} onValueChange={setRelationshipType}>
+                  <SelectTrigger className="bg-input border-border text-foreground">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="romantic">Romantic Partner</SelectItem>
+                    <SelectItem value="friend">Close Friend</SelectItem>
+                    <SelectItem value="coworker">Coworker</SelectItem>
+                    <SelectItem value="manager">Manager/Supervisor</SelectItem>
+                    <SelectItem value="family">Family Member</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-foreground mb-2">Response Style</label>
                 <Select value={partnerStyle} onValueChange={setPartnerStyle}>
                   <SelectTrigger className="bg-input border-border text-foreground">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="supportive">Supportive Partner</SelectItem>
-                    <SelectItem value="defensive">Defensive Partner</SelectItem>
-                    <SelectItem value="dismissive">Dismissive Partner</SelectItem>
-                    <SelectItem value="avoidant">Avoidant Partner</SelectItem>
-                    <SelectItem value="anxious">Anxious Partner</SelectItem>
+                    <SelectItem value="supportive">Supportive</SelectItem>
+                    <SelectItem value="defensive">Defensive</SelectItem>
+                    <SelectItem value="dismissive">Dismissive</SelectItem>
+                    <SelectItem value="avoidant">Avoidant</SelectItem>
+                    <SelectItem value="anxious">Anxious</SelectItem>
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground mt-1">
@@ -199,7 +226,7 @@ Respond as the partner. Stay in character based on your personality type. If the
                 <Textarea
                   value={scenario}
                   onChange={(e) => setScenario(e.target.value)}
-                  placeholder="Example: My partner forgot our anniversary and I want to express how that made me feel without starting a fight..."
+                  placeholder="Example: I need to discuss a boundary with my friend about how they've been treating me..."
                   rows={4}
                   className="bg-input border-border text-foreground"
                 />

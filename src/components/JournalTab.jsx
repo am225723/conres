@@ -1,14 +1,61 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Laptop as NotebookPen } from 'lucide-react';
+import { supabase } from '@/lib/supabase';
+import { toast } from 'react-toastify';
 
 export function JournalTab({
   journalEntry, setJournalEntry,
   addJournalEntry, journal
 }) {
+  const [savedEntries, setSavedEntries] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    fetchJournalEntries();
+  }, []);
+
+  const fetchJournalEntries = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('conres_journal_entries')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+
+      if (!error && data) {
+        setSavedEntries(data);
+      }
+    } catch (error) {
+      console.error('Error fetching journal entries:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAddEntry = () => {
+    addJournalEntry();
+    saveEntryToDatabase();
+  };
+
+  const saveEntryToDatabase = async () => {
+    if (!journalEntry.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('conres_journal_entries')
+        .insert([{ entry_text: journalEntry }]);
+
+      if (error) throw error;
+      fetchJournalEntries();
+    } catch (error) {
+      console.error('Error saving entry:', error);
+      toast.error('Could not save entry to dashboard');
+    }
+  };
   return (
     <div className="space-y-6">
       <Card className="glass-card border-border">
@@ -25,7 +72,7 @@ export function JournalTab({
             rows={4}
           />
           <Button
-            onClick={addJournalEntry}
+            onClick={handleAddEntry}
             className="w-full bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 text-primary-foreground"
           >
             <NotebookPen className="w-4 h-4 mr-2" />
