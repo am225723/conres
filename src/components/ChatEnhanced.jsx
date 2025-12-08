@@ -388,6 +388,8 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
                 onSendOriginal={handleSendOriginal}
                 onSendIStatement={handleSendIStatement}
                 isLoading={isGeneratingIStatement}
+                tone={currentTone}
+                toneColor={inputBoxColor}
             />
 
             {/* Main Chat Container */}

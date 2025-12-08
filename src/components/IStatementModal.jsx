@@ -1,8 +1,11 @@
 import React from 'react';
 import { X, Send, MessageSquare } from 'lucide-react';
 
-const IStatementModal = ({ isOpen, onClose, originalMessage, iStatement, onSendOriginal, onSendIStatement, isLoading }) => {
+const IStatementModal = ({ isOpen, onClose, originalMessage, iStatement, onSendOriginal, onSendIStatement, isLoading, tone, toneColor }) => {
   if (!isOpen) return null;
+
+  const displayTone = tone ? tone.charAt(0).toUpperCase() + tone.slice(1) : 'Calm';
+  const displayColor = toneColor && toneColor !== '#FFFFFF' ? toneColor : '#AEC6CF';
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
@@ -13,13 +16,24 @@ const IStatementModal = ({ isOpen, onClose, originalMessage, iStatement, onSendO
             <h3 className="text-xl font-bold text-foreground">Choose How to Send</h3>
             <p className="text-sm text-muted-foreground mt-1">Send your original message or the AI-suggested I-Statement</p>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-muted/50 transition-colors"
-            aria-label="Close"
-          >
-            <X className="w-5 h-5 text-foreground/70" />
-          </button>
+          <div className="flex items-center gap-3">
+            <div 
+              className="px-4 py-2 rounded-lg font-bold text-white shadow-lg"
+              style={{ 
+                backgroundColor: displayColor,
+                textShadow: '0 1px 2px rgba(0,0,0,0.3)'
+              }}
+            >
+              {displayTone}
+            </div>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-muted/50 transition-colors"
+              aria-label="Close"
+            >
+              <X className="w-5 h-5 text-foreground/70" />
+            </button>
+          </div>
         </div>
 
         {/* Content */}
