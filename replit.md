@@ -66,6 +66,14 @@ A sophisticated real-time messaging platform for couples with AI-powered insight
 - Displays alongside message analytics and tone distribution
 - Provides comprehensive view of user's communication journey
 
+## Previous Changes (Dec 17, 2025 - PIN & Token Authentication)
+- **PIN-Based Login**: 6-digit PIN authentication via Supabase users table
+- **Token Authentication**: URL-based login via `?token=<token>` that validates against external API
+- **External Token Validation**: `GET https://couples.integrativepsychiatry.xyz/api/modules/validate-token`
+- **Protected Routes**: All app routes require authentication
+- **Session Management**: 24-hour sessions for PIN login, 15-minute sessions for token login
+- **User Roles**: Admin and user roles supported in conres_users table
+
 ## Previous Changes (Dec 7, 2025 - Supabase Edge Functions)
 - **Supabase Edge Functions**: Deployed serverless functions for AI features
   - `tone-analyze` - Perplexity AI-powered tone analysis with 17 emotional tones

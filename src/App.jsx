@@ -17,6 +17,9 @@ import AIStatementBuilder from '@/components/AIStatementBuilder';
 import AIRolePlayer from '@/components/AIRolePlayer';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
 import { SidebarProvider, useSidebar } from '@/context/SidebarContext';
+import { AuthProvider, TokenHandler } from '@/context/AuthContext';
+import Login from '@/components/Login';
+import ProtectedRoute from '@/components/ProtectedRoute';
 
 const MainApp = () => {
   const { toast } = useToast();
@@ -305,19 +308,36 @@ const MainApp = () => {
 
 export default function App() {
   return (
-    <SidebarProvider>
-      <Helmet>
-        <title>I-Statement Builder - Transform Your Communication</title>
-        <meta name="description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
-        <meta property="og:title" content="I-Statement Builder - Transform Your Communication" />
-        <meta property="og:description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
-      </Helmet>
-      <Toaster />
-      <Routes>
-        <Route path="/*" element={<MainApp />} />
-        <Route path="/couples/:sessionId" element={<CouplesTexting />} />
-        <Route path="/couples" element={<CouplesTexting />} />
-      </Routes>
-    </SidebarProvider>
+    <AuthProvider>
+      <SidebarProvider>
+        <Helmet>
+          <title>I-Statement Builder - Transform Your Communication</title>
+          <meta name="description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
+          <meta property="og:title" content="I-Statement Builder - Transform Your Communication" />
+          <meta property="og:description" content="Build powerful I-statements for better relationships. Practice empathetic communication with guided exercises, role-play scenarios, and emotional intelligence tools." />
+        </Helmet>
+        <Toaster />
+        <TokenHandler>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/*" element={
+              <ProtectedRoute>
+                <MainApp />
+              </ProtectedRoute>
+            } />
+            <Route path="/couples/:sessionId" element={
+              <ProtectedRoute>
+                <CouplesTexting />
+              </ProtectedRoute>
+            } />
+            <Route path="/couples" element={
+              <ProtectedRoute>
+                <CouplesTexting />
+              </ProtectedRoute>
+            } />
+          </Routes>
+        </TokenHandler>
+      </SidebarProvider>
+    </AuthProvider>
   );
 }
