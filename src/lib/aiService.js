@@ -1,9 +1,9 @@
 import { supabase } from './supabase';
-import { analyzeToneLocally, TONE_COLORS } from './toneAnalysis';
+import { TONE_COLORS } from './toneAnalysis';
 
 export const analyzeTone = async (text) => {
   if (!text || text.trim().length === 0) {
-    return { tone: 'calm', confidence: 0.3 };
+    return { tone: 'neutral', confidence: 0.3 };
   }
 
   try {
@@ -12,19 +12,19 @@ export const analyzeTone = async (text) => {
     });
 
     if (error) {
-      console.warn('Edge function error, using local fallback:', error.message);
-      return analyzeToneLocally(text);
+      console.warn('Edge function error:', error.message);
+      return { tone: 'neutral', confidence: 0.3 };
     }
 
     if (data.error) {
-      console.warn('AI tone analysis failed, using local fallback:', data.error);
-      return analyzeToneLocally(text);
+      console.warn('AI tone analysis failed:', data.error);
+      return { tone: 'neutral', confidence: 0.3 };
     }
 
     return { tone: data.tone, confidence: data.confidence || 0.9 };
   } catch (error) {
-    console.warn('AI tone analysis failed, using local fallback:', error.message);
-    return analyzeToneLocally(text);
+    console.warn('AI tone analysis failed:', error.message);
+    return { tone: 'neutral', confidence: 0.3 };
   }
 };
 
