@@ -143,6 +143,17 @@ Located in Replit Secrets (override .env file):
 - **Journal Reflections**: View recent journal entries
 - **Quick Insights**: Key statistics at a glance
 
+### AI Conversation Moderator (Couples Chat)
+- **Real-time speaker tracking**: Shows who last spoke with a live mic indicator
+- **Overtalk detection**: Alerts when one person sends 3+ consecutive messages without a reply
+- **Aggression detection**: Maps 20+ emotional tones to aggression scores; alerts at warning/critical levels
+- **Erratic behavior detection**: Flags rapid message bursts (4+ messages in 45s) and high mood variance
+- **Turn balance bar**: Visual split of how much each person has spoken
+- **Health score**: 0–100 conversation health score updated after every message
+- **AI de-escalation tips**: Fetches an AI-generated moderator suggestion when a warning/critical alert fires
+- **Collapsible panel**: Minimizes to a header bar to save screen space
+- Component: `src/components/ConversationModerator.jsx`, integrated into `ChatEnhanced.jsx`
+
 ### Couples Texting Module
 - **Real-time Tone Analysis**: As users type, AI analyzes tone and changes input box color
 - **I-Statement Generation**: AI converts potentially confrontational messages into constructive I-Statements
