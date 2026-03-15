@@ -39,7 +39,8 @@ Create a warm, personalized affirmation (2-3 sentences) that:
 2. Offers comfort and hope
 3. Affirms their worth
 
-Return ONLY the affirmation text, nothing else.`
+Return ONLY the affirmation text, nothing else.`,
+          systemPrompt: "You are a compassionate emotional wellness guide. Generate warm, healing affirmations."
         }
       });
 

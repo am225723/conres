@@ -56,7 +56,8 @@ PARTNER PERSONALITY: ${partnerStyles[partnerStyle]}
 
 SCENARIO: ${scenario}
 
-Start the conversation as this person. React to the scenario naturally based on your personality type. Keep your response to 2-3 sentences. Don't break character.`
+Start the conversation as this person. React to the scenario naturally based on your personality type. Keep your response to 2-3 sentences. Don't break character.`,
+          systemPrompt: "You are a role-play partner for communication practice. Stay in character and respond naturally."
         }
       });
 
@@ -101,7 +102,8 @@ SCENARIO: ${scenario}
 CONVERSATION SO FAR:
 ${conversationHistory}
 
-Respond naturally. Stay in character based on your personality type. If the user is practicing healthy communication (I-statements, active listening), gradually become more receptive. Keep responses to 2-3 sentences. Be authentic but remember this is a learning exercise.`
+Respond naturally. Stay in character based on your personality type. If the user is practicing healthy communication (I-statements, active listening), gradually become more receptive. Keep responses to 2-3 sentences. Be authentic but remember this is a learning exercise.`,
+          systemPrompt: "You are a role-play partner for communication practice. Stay in character and respond naturally."
         }
       });
 
