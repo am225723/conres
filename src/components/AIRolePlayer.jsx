@@ -50,7 +50,7 @@ const AIRolePlayer = ({ onSaveSession }) => {
     try {
       const { data, error } = await supabase.functions.invoke('generate-i-statement', {
         body: { 
-          text: `You are playing the role of ${relationshipTypes[relationshipType]} in a communication practice role-play.
+          prompt: `You are playing the role of ${relationshipTypes[relationshipType]} in a communication practice role-play.
 
 PARTNER PERSONALITY: ${partnerStyles[partnerStyle]}
 
@@ -92,7 +92,7 @@ Start the conversation as this person. React to the scenario naturally based on 
 
       const { data, error } = await supabase.functions.invoke('generate-i-statement', {
         body: { 
-          text: `You are playing the role of ${relationshipTypes[relationshipType]} in a communication practice role-play.
+          prompt: `You are playing the role of ${relationshipTypes[relationshipType]} in a communication practice role-play.
 
 PARTNER PERSONALITY: ${partnerStyles[partnerStyle]}
 

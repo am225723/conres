@@ -87,7 +87,7 @@ Return ONLY the I-Statement, nothing else. Make it sound natural and conversatio
       }
       
       const { data, error } = await supabase.functions.invoke('generate-i-statement', {
-        body: { text: prompt }
+        body: { prompt }
       });
 
       if (error) throw error;
@@ -136,9 +136,7 @@ Return ONLY the I-Statement, nothing else. Make it sound natural and conversatio
         `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`
       ).join('\n');
 
-      const { data, error } = await supabase.functions.invoke('generate-i-statement', {
-        body: { 
-          text: `You are helping refine an I-Statement. Here's the context:
+      const refinementPrompt = `You are helping refine an I-Statement. Here's the context:
 
 ORIGINAL INPUTS:
 - Feeling: ${feeling}
@@ -160,8 +158,10 @@ YOUR TASK:
 3. When presenting a revised statement, format it clearly.
 4. Always ask if the new version captures what they meant.
 
-Keep responses supportive and concise. If you create a new statement, include it clearly in your response starting with "Here's the revised version:" followed by the statement in quotes.`
-        }
+Keep responses supportive and concise. If you create a new statement, include it clearly in your response starting with "Here's the revised version:" followed by the statement in quotes.`;
+
+      const { data, error } = await supabase.functions.invoke('generate-i-statement', {
+        body: { prompt: refinementPrompt }
       });
 
       if (error) throw error;

@@ -11,11 +11,12 @@ serve(async (req) => {
   }
 
   try {
-    const { text } = await req.json()
+    const body = await req.json()
+    const { text, prompt: directPrompt, systemPrompt: customSystemPrompt } = body
 
-    if (!text || text.trim().length === 0) {
+    if (!text && !directPrompt) {
       return new Response(
-        JSON.stringify({ iStatement: text }),
+        JSON.stringify({ iStatement: '' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
@@ -25,7 +26,13 @@ serve(async (req) => {
       throw new Error('PPLX_API_KEY not configured')
     }
 
-    const prompt = `Convert this message into a constructive I-Statement format. Use this structure:
+    const systemContent = customSystemPrompt || "You are an expert communication coach. Convert messages to I-Statements."
+
+    let userContent: string
+    if (directPrompt) {
+      userContent = directPrompt
+    } else {
+      userContent = `Convert this message into a constructive I-Statement format. Use this structure:
 "I feel [emotion] when [situation] because [impact]. I would like [request]."
 
 Make it empathetic, non-blaming, and focused on expressing feelings and needs constructively.
@@ -33,6 +40,7 @@ Make it empathetic, non-blaming, and focused on expressing feelings and needs co
 Original message: "${text}"
 
 Respond with ONLY the I-Statement, no additional explanation.`
+    }
 
     const response = await fetch("https://api.perplexity.ai/chat/completions", {
       method: 'POST',
@@ -43,10 +51,10 @@ Respond with ONLY the I-Statement, no additional explanation.`
       body: JSON.stringify({
         model: "sonar",
         messages: [
-          { role: "system", content: "You are an expert communication coach. Convert messages to I-Statements." },
-          { role: "user", content: prompt },
+          { role: "system", content: systemContent },
+          { role: "user", content: userContent },
         ],
-        max_tokens: 200,
+        max_tokens: 500,
         temperature: 0.7,
       }),
     })

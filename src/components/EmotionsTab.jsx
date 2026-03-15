@@ -30,7 +30,7 @@ export function EmotionsTab({
     try {
       const { data, error } = await supabase.functions.invoke('generate-i-statement', {
         body: { 
-          text: `Generate a healing affirmation for someone feeling: ${pickedEmotions.join(', ')}.
+          prompt: `Generate a healing affirmation for someone feeling: ${pickedEmotions.join(', ')}.
 Their needs are: ${pickedNeeds.join(', ') || 'not specified'}.
 Their insecurities: ${insecurityNotes || 'not specified'}.
 

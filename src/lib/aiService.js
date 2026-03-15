@@ -116,10 +116,10 @@ export const transcribeVoice = async (audioBlob) => {
   };
 };
 
-export const callAI = async (prompt, systemPrompt = "You are an expert communication coach.") => {
+export const callAI = async (userPrompt, systemPrompt = "You are an expert communication coach.") => {
   try {
     const { data, error } = await supabase.functions.invoke('generate-i-statement', {
-      body: { text: prompt }
+      body: { prompt: userPrompt, systemPrompt }
     });
 
     if (error || data.error) {
