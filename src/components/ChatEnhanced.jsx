@@ -13,6 +13,7 @@ import { analyzeTone, generateIStatement, transcribeVoice } from '../lib/aiServi
 import IStatementModal from './IStatementModal';
 import { CoolDownTimer } from './CoolDownTimer';
 import { VoiceRecorder } from './VoiceRecorder';
+import ConversationModerator from './ConversationModerator';
 
 const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
     // State management
@@ -424,6 +425,15 @@ const ChatEnhanced = ({ session, userId, nickname, onLeave }) => {
                             <LogOut className="w-5 h-5" />
                         </button>
                     </div>
+                </div>
+
+                {/* AI Moderator Panel */}
+                <div className="px-4 pt-4">
+                    <ConversationModerator
+                        messages={messages}
+                        userId={userId}
+                        participants={participants}
+                    />
                 </div>
 
                 {/* Messages Area */}

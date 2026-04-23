@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Bot, User, Sparkles, Copy, Check, RefreshCw, Zap, ThumbsUp, ThumbsDown, Edit3, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +8,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Slider } from '@/components/ui/slider';
 import { supabase } from '@/lib/supabase';
 import { toast } from 'react-toastify';
+import { analyzeTone } from '@/lib/aiService';
+import { debounce } from '@/lib/toneAnalysis';
+import ConversationModerator from './ConversationModerator';
+
+const BUILDER_USER_ID = 'builder_user';
+const BUILDER_AI_ID = 'builder_ai';
+const BUILDER_PARTICIPANTS = [
+  { user_id: BUILDER_USER_ID, nickname: 'You' },
+  { user_id: BUILDER_AI_ID, nickname: 'AI Coach' },
+];
 
 const AIStatementBuilder = ({ onSaveStatement }) => {
   const [rawFeeling, setRawFeeling] = useState('');
@@ -25,7 +35,30 @@ const AIStatementBuilder = ({ onSaveStatement }) => {
   const [verificationStep, setVerificationStep] = useState(false);
   const [copied, setCopied] = useState(false);
   const [showChat, setShowChat] = useState(false);
+  const [inputTone, setInputTone] = useState('Waiting');
   const messagesEndRef = useRef(null);
+
+  const analyzeInputTone = useCallback(
+    debounce(async (text) => {
+      if (!text || text.trim().length < 5) { setInputTone('Waiting'); return; }
+      const result = await analyzeTone(text);
+      setInputTone(result.tone || 'Waiting');
+    }, 600),
+    []
+  );
+
+  useEffect(() => {
+    const text = useRawMode ? rawFeeling : [feeling, situation, because, request].filter(Boolean).join('. ');
+    analyzeInputTone(text);
+  }, [rawFeeling, feeling, situation, because, request, useRawMode, analyzeInputTone]);
+
+  const moderatorMessages = messages.map((m, i) => ({
+    id: String(i),
+    user_id: m.role === 'user' ? BUILDER_USER_ID : BUILDER_AI_ID,
+    message_text: m.content,
+    tone_analysis: { tone: m.tone || (m.role === 'user' ? inputTone : 'empathetic') },
+    created_at: m.created_at || new Date().toISOString(),
+  }));
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -100,7 +133,9 @@ Return ONLY the I-Statement, nothing else. Make it sound natural and conversatio
       const originalText = useRawMode ? rawFeeling : `Feeling: ${feeling}, Situation: ${situation}`;
       setMessages([{
         role: 'assistant',
-        content: `I've transformed your message into this I-Statement:\n\n"${statement}"\n\nDoes this capture what you wanted to express? If not, tell me what's missing or what you'd like to change.`
+        content: `I've transformed your message into this I-Statement:\n\n"${statement}"\n\nDoes this capture what you wanted to express? If not, tell me what's missing or what you'd like to change.`,
+        tone: 'empathetic',
+        created_at: new Date().toISOString()
       }]);
 
     } catch (error) {
@@ -126,7 +161,7 @@ Return ONLY the I-Statement, nothing else. Make it sound natural and conversatio
   const sendMessage = async () => {
     if (!userInput.trim() || isLoading) return;
 
-    const newUserMessage = { role: 'user', content: userInput };
+    const newUserMessage = { role: 'user', content: userInput, tone: inputTone, created_at: new Date().toISOString() };
     setMessages(prev => [...prev, newUserMessage]);
     setUserInput('');
     setIsLoading(true);
@@ -174,13 +209,15 @@ Keep responses supportive and concise. If you create a new statement, include it
         setGeneratedStatement(revisedMatch[1]);
       }
 
-      setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
+      setMessages(prev => [...prev, { role: 'assistant', content: responseText, tone: 'empathetic', created_at: new Date().toISOString() }]);
 
     } catch (error) {
       console.error('AI error:', error);
       setMessages(prev => [...prev, { 
         role: 'assistant', 
-        content: "I'm having trouble connecting. You can manually edit the statement above, or tell me what changes you'd like and I'll try again." 
+        content: "I'm having trouble connecting. You can manually edit the statement above, or tell me what changes you'd like and I'll try again.",
+        tone: 'calm',
+        created_at: new Date().toISOString()
       }]);
     } finally {
       setIsLoading(false);
@@ -252,6 +289,12 @@ Keep responses supportive and concise. If you create a new statement, include it
   };
 
   return (
+    <div className="space-y-4">
+    <ConversationModerator
+      messages={moderatorMessages}
+      userId={BUILDER_USER_ID}
+      participants={BUILDER_PARTICIPANTS}
+    />
     <div className="grid lg:grid-cols-2 gap-6">
       <Card className="glass-card border-border">
         <CardContent className="p-6 space-y-4">
@@ -513,6 +556,7 @@ Keep responses supportive and concise. If you create a new statement, include it
           )}
         </CardContent>
       </Card>
+    </div>
     </div>
   );
 };
