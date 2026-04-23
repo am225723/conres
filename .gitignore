@@ -23,3 +23,5 @@ netlify/functions/node_modules
 /functions/node_modules
 .netlify
 .env
+.vercel
+.env*.local
